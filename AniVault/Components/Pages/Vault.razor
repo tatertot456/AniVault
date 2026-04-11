@@ -1,0 +1,121 @@
+﻿@page "/vault"
+@inject AnimeService AnimeService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Vault — AniVault</PageTitle>
+
+<div class="section">
+    <div class="section-header">
+        <h1 class="section-title">The Vault</h1>
+        <div class="filter-chips">
+            <button class="chip @(ActiveFilter == "All" ? "chip-active" : "")" @onclick='() => SetFilter("All")'>All</button>
+            <button class="chip @(ActiveFilter == "Watched" ? "chip-active" : "")" @onclick='() => SetFilter("Watched")'>Watched</button>
+            <button class="chip @(ActiveFilter == "Watching" ? "chip-active" : "")" @onclick='() => SetFilter("Watching")'>Watching</button>
+            <button class="chip @(ActiveFilter == "Read" ? "chip-active" : "")" @onclick='() => SetFilter("Read")'>Read</button>
+            <button class="chip @(ActiveFilter == "Reading" ? "chip-active" : "")" @onclick='() => SetFilter("Reading")'>Reading</button>
+            <button class="chip @(ActiveFilter == "Plan to Watch" ? "chip-active" : "")" @onclick='() => SetFilter("Plan to Watch")'>Plan to Watch</button>
+            <button class="chip @(ActiveFilter == "Plan to Read" ? "chip-active" : "")" @onclick='() => SetFilter("Plan to Read")'>Plan to Read</button>
+            <button class="chip @(ActiveFilter == "On-Hold" ? "chip-active" : "")" @onclick='() => SetFilter("On-Hold")'>On-Hold</button>
+            <button class="chip @(ActiveFilter == "Dropped" ? "chip-active" : "")" @onclick='() => SetFilter("Dropped")'>Dropped</button>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="spinner-container">
+            <div class="spinner"></div>
+        </div>
+    }
+    else if (!FilteredAnime.Any())
+    {
+        <div class="empty-state">
+            <p>No anime found. Add some from the <a href="/dev">Dev Menu</a>!</p>
+        </div>
+    }
+    else
+    {
+        <div class="anime-grid">
+            @foreach (var entry in FilteredAnime)
+            {
+                <div class="anime-card" @onclick="() => GoToDetail(entry.Id)">
+                    @if (!string.IsNullOrWhiteSpace(entry.CoverImageUrl))
+                    {
+                        <img class="anime-card-poster"
+                             src="@entry.CoverImageUrl"
+                             alt="@entry.Title poster"
+                             loading="lazy" />
+                    }
+                    else
+                    {
+                        <div class="anime-card-no-art">NO ART</div>
+                    }
+
+                    <div class="anime-card-overlay">
+                        <p class="anime-card-title">@entry.Title</p>
+                        <span class="status-pill @GetStatusClass(entry.WatchStatus)">@entry.WatchStatus</span>
+                    </div>
+
+                    @if (entry.MyRating.HasValue)
+                    {
+                        <span class="anime-card-score">@entry.MyRating.Value.ToString("F1")</span>
+                    }
+
+                    <button class="card-fav-btn @(entry.IsFavorite ? "fav-active" : "")"
+                            @onclick:stopPropagation="true"
+                            @onclick="() => ToggleFavorite(entry)">
+                        @(entry.IsFavorite ? "★" : "☆")
+                    </button>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<AnimeEntry> AllAnime = new();
+    private List<AnimeEntry> FilteredAnime = new();
+    private string ActiveFilter = "All";
+    private bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AllAnime = await AnimeService.GetAllAsync();
+        ApplyFilter();
+        IsLoading = false;
+    }
+
+    private void SetFilter(string filter)
+    {
+        ActiveFilter = filter;
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        FilteredAnime = ActiveFilter == "All"
+            ? AllAnime
+            : AllAnime.Where(a => a.WatchStatus == ActiveFilter).ToList();
+    }
+
+    private void GoToDetail(int id) => Nav.NavigateTo($"/anime/{id}");
+
+    private async Task ToggleFavorite(AnimeEntry entry)
+    {
+        await AnimeService.ToggleFavoriteAsync(entry.Id);
+        entry.IsFavorite = !entry.IsFavorite;
+    }
+
+    private string GetStatusClass(string? status) => status switch
+    {
+        "Watched" => "status-watched",
+        "Watching" => "status-watching",
+        "Read" => "status-read",
+        "Reading" => "status-reading",
+        "Plan to Watch" => "status-plan",
+        "Plan to Read" => "status-plan",
+        "Dropped" => "status-dropped",
+        "On-Hold" => "status-onhold",
+        _ => ""
+    };
+}

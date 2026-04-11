@@ -982,3 +982,172 @@ a {
     color: var(--accent-gold);
     letter-spacing: 0.05em;
 }
+
+/* --- Hero Splash --- */
+.hero-splash {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--bg-base);
+}
+
+.hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse, rgba(245, 197, 24, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+}
+
+.hero-logo {
+    font-family: var(--font-display);
+    font-size: clamp(5rem, 15vw, 10rem);
+    letter-spacing: 0.12em;
+    color: var(--text-primary);
+    line-height: 1;
+    text-shadow: 0 0 80px rgba(245, 197, 24, 0.15), 0 0 160px rgba(245, 197, 24, 0.06);
+}
+
+    .hero-logo span {
+        color: var(--accent-gold);
+        text-shadow: 0 0 40px rgba(245, 197, 24, 0.4);
+    }
+
+.hero-tagline {
+    font-size: 0.9rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.hero-stats-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.hero-stat-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem 1.5rem;
+    min-width: 90px;
+}
+
+.hero-stat-num {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--accent-gold);
+    letter-spacing: 0.05em;
+    line-height: 1;
+}
+
+.hero-stat-lbl {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+}
+
+.hero-cta {
+    margin-top: 0.5rem;
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    border: 1px solid var(--accent-gold);
+    border-radius: var(--radius);
+    color: var(--accent-gold);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all var(--transition);
+}
+
+    .hero-cta:hover {
+        background: var(--accent-gold);
+        color: var(--bg-base);
+        text-decoration: none;
+    }
+
+/* --- View All Link --- */
+.view-all-link {
+    font-size: 0.85rem;
+    color: var(--accent-gold);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: opacity var(--transition);
+}
+
+    .view-all-link:hover {
+        opacity: 0.75;
+        text-decoration: none;
+    }
+
+/* --- Delete Confirmation Modal --- */
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-box {
+    background: var(--bg-card);
+    border: 1px solid var(--accent-red);
+    border-radius: var(--radius);
+    padding: 2rem;
+    max-width: 420px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    animation: slideIn 0.2s ease;
+}
+
+.confirm-title {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    letter-spacing: 0.06em;
+    color: var(--accent-red);
+}
+
+.confirm-message {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+    .confirm-message strong {
+        color: var(--text-primary);
+    }
+
+.confirm-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
