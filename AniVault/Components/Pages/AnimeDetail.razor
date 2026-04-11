@@ -1,0 +1,154 @@
+﻿@page "/anime/{Id:int}"
+@inject AnimeService AnimeService
+@inject NavigationManager Nav
+@inject ToastService Toast
+@rendermode InteractiveServer
+
+<PageTitle>@(Entry?.Title ?? "Loading...") — AniVault</PageTitle>
+
+@if (IsLoading)
+{
+    <div class="spinner-container">
+        <div class="spinner"></div>
+    </div>
+}
+else if (Entry == null)
+{
+    <div class="empty-state">
+        <p>Anime not found. <a href="/">Go back to Gallery</a></p>
+    </div>
+}
+else
+{
+    <div class="detail-shell">
+        <!-- Back Button -->
+        <button class="btn-back" @onclick="GoBack">← Back</button>
+
+        <div class="detail-hero">
+            <!-- Cover Art -->
+            <div class="detail-poster-wrap">
+                @if (!string.IsNullOrWhiteSpace(Entry.CoverImageUrl))
+                {
+                    <img class="detail-poster" src="@Entry.CoverImageUrl" alt="@Entry.Title poster" />
+                }
+                else
+                {
+                    <div class="detail-poster-placeholder">NO ART</div>
+                }
+            </div>
+
+            <!-- Info Panel -->
+            <div class="detail-info">
+                <h1 class="detail-title">@Entry.Title</h1>
+
+                <div class="detail-meta">
+                    <span class="detail-badge">@Entry.WatchStatus</span>
+                    @if (Entry.EpisodeCount.HasValue)
+                    {
+                        <span class="detail-badge">@Entry.EpisodeCount eps</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Entry.Genre))
+                    {
+                        <span class="detail-badge">@Entry.Genre</span>
+                    }
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Entry.Description))
+                {
+                    <p class="detail-synopsis">@Entry.Description</p>
+                }
+
+                <!-- Ratings -->
+                <div class="detail-ratings">
+                    @if (Entry.AverageRating.HasValue)
+                    {
+                        <div class="rating-block">
+                            <span class="rating-label">MAL Rating</span>
+                            <span class="rating-value">@Entry.AverageRating.Value.ToString("F1")</span>
+                        </div>
+                    }
+                    @if (Entry.MyRating.HasValue)
+                    {
+                        <div class="rating-block">
+                            <span class="rating-label">My Rating</span>
+                            <span class="rating-value">@Entry.MyRating.Value.ToString("F1")</span>
+                        </div>
+                    }
+                    @if (Entry.Liked.HasValue)
+                    {
+                        <div class="rating-block">
+                            <span class="rating-label">Liked</span>
+                            <span class="rating-value @(Entry.Liked.Value ? "liked-yes" : "liked-no")">
+                                @(Entry.Liked.Value ? "♥ Yes" : "✕ No")
+                            </span>
+                        </div>
+                    }
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Entry.Notes))
+                {
+                    <div class="detail-notes">
+                        <span class="rating-label">My Notes</span>
+                        <p>@Entry.Notes</p>
+                    </div>
+                }
+
+                <!-- Actions -->
+                <div class="detail-actions">
+                    <button class="btn btn-gold" @onclick="ToggleFavorite">
+                        @(Entry.IsFavorite ? "★ Favorited" : "☆ Add to Favorites")
+                    </button>
+                    <button class="btn btn-danger" @onclick="DeleteEntry">
+                        🗑 Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trailer -->
+        @if (!string.IsNullOrWhiteSpace(Entry.TrailerUrl))
+        {
+            <div class="detail-trailer">
+                <h2 class="section-title">Trailer</h2>
+                <div class="trailer-wrap">
+                    <iframe src="@Entry.TrailerUrl"
+                            frameborder="0"
+                            allowfullscreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                    </iframe>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private AnimeEntry? Entry;
+    private bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Entry = await AnimeService.GetByIdAsync(Id);
+        IsLoading = false;
+    }
+
+    private void GoBack() => Nav.NavigateTo("/");
+
+    private async Task ToggleFavorite()
+    {
+        if (Entry == null) return;
+        await AnimeService.ToggleFavoriteAsync(Entry.Id);
+        Entry.IsFavorite = !Entry.IsFavorite;
+        Toast.Show(Entry.IsFavorite ? "Added to favorites!" : "Removed from favorites.", ToastType.Success);
+    }
+
+    private async Task DeleteEntry()
+    {
+        if (Entry == null) return;
+        await AnimeService.DeleteAsync(Entry.Id);
+        Toast.Show("Removed from vault.", ToastType.Info);
+        Nav.NavigateTo("/");
+    }
+}

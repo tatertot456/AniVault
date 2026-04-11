@@ -1,0 +1,79 @@
+﻿@page "/stats"
+@inject AnimeService AnimeService
+@rendermode InteractiveServer
+
+<PageTitle>Stats — AniVault</PageTitle>
+
+<div class="section">
+    <div class="section-header">
+        <h1 class="section-title">My Stats</h1>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="spinner-container">
+            <div class="spinner"></div>
+        </div>
+    }
+    else
+    {
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-value">@TotalAnime</span>
+                <span class="stat-label">Total in Vault</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">@Completed</span>
+                <span class="stat-label">Completed</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">@Watching</span>
+                <span class="stat-label">Watching</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">@PlanToWatch</span>
+                <span class="stat-label">Plan to Watch</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">@Dropped</span>
+                <span class="stat-label">Dropped</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">@Favorites</span>
+                <span class="stat-label">Favorites</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">@AverageRating.ToString("F1")</span>
+                <span class="stat-label">Avg My Rating</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">@TotalEpisodes</span>
+                <span class="stat-label">Episodes Watched</span>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<AnimeEntry> AllAnime = new();
+    private bool IsLoading = true;
+
+    private int TotalAnime => AllAnime.Count;
+    private int Completed => AllAnime.Count(a => a.WatchStatus == "Completed");
+    private int Watching => AllAnime.Count(a => a.WatchStatus == "Watching");
+    private int PlanToWatch => AllAnime.Count(a => a.WatchStatus == "Plan to Watch");
+    private int Dropped => AllAnime.Count(a => a.WatchStatus == "Dropped");
+    private int Favorites => AllAnime.Count(a => a.IsFavorite);
+    private int TotalEpisodes => AllAnime
+        .Where(a => a.WatchStatus == "Completed" && a.EpisodeCount.HasValue)
+        .Sum(a => a.EpisodeCount!.Value);
+    private decimal AverageRating => AllAnime.Any(a => a.MyRating.HasValue)
+        ? AllAnime.Where(a => a.MyRating.HasValue).Average(a => a.MyRating!.Value)
+        : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AllAnime = await AnimeService.GetAllAsync();
+        IsLoading = false;
+    }
+}

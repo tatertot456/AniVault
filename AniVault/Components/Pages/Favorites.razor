@@ -1,20 +1,13 @@
-﻿@page "/"
+﻿@page "/favorites"
 @inject AnimeService AnimeService
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
-<PageTitle>AniVault — Gallery</PageTitle>
+<PageTitle>Favorites — AniVault</PageTitle>
 
 <div class="section">
     <div class="section-header">
-        <h1 class="section-title">My Vault</h1>
-        <div class="filter-chips">
-            <button class="chip @(ActiveFilter == "All" ? "chip-active" : "")" @onclick='() => SetFilter("All")'>All</button>
-            <button class="chip @(ActiveFilter == "Watching" ? "chip-active" : "")" @onclick='() => SetFilter("Watching")'>Watching</button>
-            <button class="chip @(ActiveFilter == "Completed" ? "chip-active" : "")" @onclick='() => SetFilter("Completed")'>Completed</button>
-            <button class="chip @(ActiveFilter == "Plan to Watch" ? "chip-active" : "")" @onclick='() => SetFilter("Plan to Watch")'>Plan to Watch</button>
-            <button class="chip @(ActiveFilter == "Dropped" ? "chip-active" : "")" @onclick='() => SetFilter("Dropped")'>Dropped</button>
-        </div>
+        <h1 class="section-title">Favorites</h1>
     </div>
 
     @if (IsLoading)
@@ -23,16 +16,16 @@
             <div class="spinner"></div>
         </div>
     }
-    else if (!FilteredAnime.Any())
+    else if (!Favorites.Any())
     {
         <div class="empty-state">
-            <p>No anime found. Add some from the <a href="/dev">Dev Menu</a>!</p>
+            <p>No favorites yet. Star some anime from the gallery!</p>
         </div>
     }
     else
     {
         <div class="anime-grid">
-            @foreach (var entry in FilteredAnime)
+            @foreach (var entry in Favorites)
             {
                 <div class="anime-card" @onclick="() => GoToDetail(entry.Id)">
                     @if (!string.IsNullOrWhiteSpace(entry.CoverImageUrl))
@@ -57,4 +50,25 @@
                         <span class="anime-card-score">@entry.MyRating.Value.ToString("F1")</span>
                     }
 
-                    <button
+                    <span class="card-fav-btn fav-active">★</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<AnimeEntry> Favorites = new();
+    private bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Favorites = await AnimeService.GetFavoritesAsync();
+        IsLoading = false;
+    }
+
+    private void GoToDetail(int id)
+    {
+        Nav.NavigateTo($"/anime/{id}");
+    }
+}

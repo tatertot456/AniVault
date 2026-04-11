@@ -1,0 +1,155 @@
+﻿@page "/dev"
+@inject JikanService JikanService
+@inject AnimeService AnimeService
+@inject ToastService Toast
+@rendermode InteractiveServer
+
+<PageTitle>Dev Menu — AniVault</PageTitle>
+
+<div class="section">
+    <div class="section-header">
+        <h1 class="section-title">⌨ Dev Menu</h1>
+        <p class="section-subtitle">Search for anime and add them to your vault.</p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="dev-search-row">
+        <input class="dev-input"
+               type="text"
+               placeholder="Search anime title..."
+               @bind="SearchQuery"
+               @bind:event="oninput"
+               @onkeydown="HandleKeyDown" />
+        <button class="btn btn-gold" @onclick="Search" disabled="@IsSearching">
+            @(IsSearching ? "Searching..." : "Search")
+        </button>
+    </div>
+
+    <!-- Search Results -->
+    @if (SearchResults.Any())
+    {
+        <div class="dev-results">
+            @foreach (var result in SearchResults)
+            {
+                <div class="dev-result-card">
+                    @if (!string.IsNullOrWhiteSpace(result.Images?.Jpg?.LargeImageUrl))
+                    {
+                        <img class="dev-result-poster"
+                             src="@result.Images.Jpg.LargeImageUrl"
+                             alt="@result.Title poster" />
+                    }
+
+                    <div class="dev-result-info">
+                        <h3 class="dev-result-title">@(result.TitleEnglish ?? result.Title)</h3>
+                        @if (!string.IsNullOrWhiteSpace(result.Synopsis))
+                        {
+                            <p class="dev-result-synopsis">@Truncate(result.Synopsis, 200)</p>
+                        }
+                        <div class="dev-result-meta">
+                            @if (result.Score.HasValue)
+                            {
+                                <span class="detail-badge">⭐ @result.Score.Value.ToString("F1")</span>
+                            }
+                            @if (result.Episodes.HasValue)
+                            {
+                                <span class="detail-badge">@result.Episodes eps</span>
+                            }
+                            @if (result.Genres?.Any() == true)
+                            {
+                                <span class="detail-badge">@string.Join(", ", result.Genres.Select(g => g.Name))</span>
+                            }
+                        </div>
+
+                        <!-- Add Form -->
+                        <div class="dev-add-form">
+                            <select class="dev-select" @bind="SelectedStatuses[result.MalId]">
+                                <option>Plan to Watch</option>
+                                <option>Watching</option>
+                                <option>Completed</option>
+                                <option>Dropped</option>
+                            </select>
+
+                            <input class="dev-input-small"
+                                   type="number"
+                                   placeholder="My Rating (0-10)"
+                                   min="0" max="10" step="0.1"
+                                   @bind="MyRatings[result.MalId]" />
+
+                            <label class="dev-checkbox-label">
+                                <input type="checkbox" @bind="LikedMap[result.MalId]" />
+                                Liked
+                            </label>
+
+                            <button class="btn btn-gold"
+                                    @onclick="() => AddToVault(result)"
+                                    disabled="@AddingIds.Contains(result.MalId)">
+                                @(AddingIds.Contains(result.MalId) ? "Adding..." : "+ Add to Vault")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (HasSearched && !IsSearching)
+    {
+        <div class="empty-state">
+            <p>No results found. Try a different title!</p>
+        </div>
+    }
+</div>
+
+@code {
+    private string SearchQuery = string.Empty;
+    private List<JikanAnimeResult> SearchResults = new();
+    private bool IsSearching = false;
+    private bool HasSearched = false;
+
+    private Dictionary<int, string> SelectedStatuses = new();
+    private Dictionary<int, decimal?> MyRatings = new();
+    private Dictionary<int, bool> LikedMap = new();
+    private HashSet<int> AddingIds = new();
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Search();
+    }
+
+    private async Task Search()
+    {
+        if (string.IsNullOrWhiteSpace(SearchQuery)) return;
+        IsSearching = true;
+        HasSearched = true;
+        SearchResults = new();
+
+        SearchResults = await JikanService.SearchAsync(SearchQuery);
+
+        foreach (var r in SearchResults)
+        {
+            if (!SelectedStatuses.ContainsKey(r.MalId))
+                SelectedStatuses[r.MalId] = "Plan to Watch";
+            if (!MyRatings.ContainsKey(r.MalId))
+                MyRatings[r.MalId] = null;
+            if (!LikedMap.ContainsKey(r.MalId))
+                LikedMap[r.MalId] = false;
+        }
+
+        IsSearching = false;
+    }
+
+    private async Task AddToVault(JikanAnimeResult result)
+    {
+        AddingIds.Add(result.MalId);
+
+        var entry = new AnimeEntry
+        {
+            Title = result.TitleEnglish ?? result.Title ?? "Unknown",
+            CoverImageUrl = result.Images?.Jpg?.LargeImageUrl,
+            Description = result.Synopsis,
+            AverageRating = result.Score,
+            EpisodeCount = result.Episodes,
+            Genre = result.Genres != null
+                ? string.Join(", ", result.Genres.Select(g => g.Name))
+                : null,
+            TrailerUrl = result.Trailer?.EmbedUrl ?? result.Trailer?.Url,
+            WatchStatus = SelectedStatuses.GetValueOrDefault(result.MalId,

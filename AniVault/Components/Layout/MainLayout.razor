@@ -1,9 +1,52 @@
 ﻿@inherits LayoutComponentBase
+@inject ToastService Toast
+@inject NavigationManager Nav
+@implements IDisposable
 
-@Body
+<div class="app-shell">
+    <!-- Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a class="navbar-brand" href="/">ANI<span>VAULT</span></a>
+
+        <ul class="navbar-nav">
+            <li><NavLink href="/" class="nav-link" Match="NavLinkMatch.All">Gallery</NavLink></li>
+            <li><NavLink href="/favorites" class="nav-link">Favorites</NavLink></li>
+            <li><NavLink href="/stats" class="nav-link">Stats</NavLink></li>
+        </ul>
+
+        <div class="navbar-right">
+            <a href="/dev" class="dev-badge">⌨ Dev Menu</a>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="page-content">
+        @Body
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container">
+        @foreach (var toast in Toast.Toasts)
+        {
+            <div class="toast toast-@toast.Type">
+                @toast.Message
+            </div>
+        }
+    </div>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Toast.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        Toast.OnChange -= StateHasChanged;
+    }
+}
