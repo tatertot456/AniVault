@@ -17,40 +17,117 @@
     }
     else
     {
+        <!-- Summary Cards -->
         <div class="stats-grid">
             <div class="stat-card">
-                <span class="stat-value">@TotalAnime</span>
+                <span class="stat-value" style="color:var(--accent-gold)">@Total</span>
                 <span class="stat-label">Total in Vault</span>
             </div>
             <div class="stat-card">
-                <span class="stat-value">@Completed</span>
-                <span class="stat-label">Completed</span>
+                <span class="stat-value" style="color:#2ec4b6">@Finished</span>
+                <span class="stat-label">Watched + Read</span>
             </div>
             <div class="stat-card">
-                <span class="stat-value">@Watching</span>
-                <span class="stat-label">Watching</span>
+                <span class="stat-value" style="color:#60a5fa">@InProgress</span>
+                <span class="stat-label">Watching + Reading</span>
             </div>
             <div class="stat-card">
-                <span class="stat-value">@PlanToWatch</span>
-                <span class="stat-label">Plan to Watch</span>
+                <span class="stat-value" style="color:var(--accent-gold)">@PlanToWatch</span>
+                <span class="stat-label">Plan to Watch/Read</span>
             </div>
             <div class="stat-card">
-                <span class="stat-value">@Dropped</span>
+                <span class="stat-value" style="color:#e07060">@Dropped</span>
                 <span class="stat-label">Dropped</span>
             </div>
             <div class="stat-card">
-                <span class="stat-value">@Favorites</span>
+                <span class="stat-value" style="color:var(--accent-gold)">@Favorites</span>
                 <span class="stat-label">Favorites</span>
             </div>
             <div class="stat-card">
-                <span class="stat-value">@AverageRating.ToString("F1")</span>
+                <span class="stat-value" style="color:#f472b6">@Liked</span>
+                <span class="stat-label">Liked ♥</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" style="color:#e07060">@Disliked</span>
+                <span class="stat-label">Disliked</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" style="color:var(--accent-gold)">@AvgMyRating.ToString("F1")</span>
                 <span class="stat-label">Avg My Rating</span>
             </div>
             <div class="stat-card">
+                <span class="stat-value" style="color:var(--accent-gold)">@AvgMalRating.ToString("F1")</span>
+                <span class="stat-label">Avg MAL Score</span>
+            </div>
+            <div class="stat-card">
                 <span class="stat-value">@TotalEpisodes</span>
-                <span class="stat-label">Episodes Watched</span>
+                <span class="stat-label">Episodes Logged</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" style="color:#a78bfa">@OnHold</span>
+                <span class="stat-label">On-Hold</span>
             </div>
         </div>
+
+        <!-- Status Breakdown -->
+        <div class="stats-section">
+            <h2 class="stats-section-title">Status Breakdown</h2>
+            @foreach (var (status, count) in StatusBreakdown)
+            {
+                var pct = Total > 0 ? (double)count / Total * 100 : 0;
+                <div class="breakdown-row">
+                    <div class="breakdown-header">
+                        <span class="breakdown-label">@status</span>
+                        <span class="breakdown-count">@count</span>
+                    </div>
+                    <div class="breakdown-bar-bg">
+                        <div class="breakdown-bar-fill" style="width:@(pct.ToString("F1"))%"></div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Top Genres -->
+        @if (GenreCounts.Any())
+        {
+            <div class="stats-section">
+                <h2 class="stats-section-title">Top Genres</h2>
+                <div class="genre-cloud">
+                    @foreach (var (genre, count) in GenreCounts.Take(20))
+                    {
+                        var size = 0.75 + (double)count / GenreCounts.First().Count * 0.75;
+                        <span class="genre-tag" style="font-size:@(size.ToString("F2"))rem">
+                            @genre <span class="genre-count">@count</span>
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Top Rated -->
+        @if (TopRated.Any())
+        {
+            <div class="stats-section">
+                <h2 class="stats-section-title">My Top Rated</h2>
+                <div class="top-rated-list">
+                    @foreach (var (entry, index) in TopRated.Select((e, i) => (e, i + 1)))
+                    {
+                        <div class="top-rated-row" @onclick="() => GoToDetail(entry.Id)">
+                            <span class="top-rated-rank">#@index</span>
+                            @if (!string.IsNullOrWhiteSpace(entry.CoverImageUrl))
+                            {
+                                <img class="top-rated-img" src="@entry.CoverImageUrl" alt="@entry.Title" />
+                            }
+                            <div class="top-rated-info">
+                                <span class="top-rated-title">@entry.Title</span>
+                                <span class="top-rated-status">@entry.WatchStatus</span>
+                            </div>
+                            <span class="top-rated-score">@entry.MyRating!.Value.ToString("F1")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
     }
 </div>
 
@@ -58,22 +135,59 @@
     private List<AnimeEntry> AllAnime = new();
     private bool IsLoading = true;
 
-    private int TotalAnime => AllAnime.Count;
-    private int Completed => AllAnime.Count(a => a.WatchStatus == "Completed");
-    private int Watching => AllAnime.Count(a => a.WatchStatus == "Watching");
-    private int PlanToWatch => AllAnime.Count(a => a.WatchStatus == "Plan to Watch");
+    private int Total => AllAnime.Count;
+    private int Finished => AllAnime.Count(a => a.WatchStatus == "Watched" || a.WatchStatus == "Read");
+    private int InProgress => AllAnime.Count(a => a.WatchStatus == "Watching" || a.WatchStatus == "Reading");
+    private int PlanToWatch => AllAnime.Count(a => a.WatchStatus == "Plan to Watch" || a.WatchStatus == "Plan to Read");
     private int Dropped => AllAnime.Count(a => a.WatchStatus == "Dropped");
+    private int OnHold => AllAnime.Count(a => a.WatchStatus == "On-Hold");
     private int Favorites => AllAnime.Count(a => a.IsFavorite);
+    private int Liked => AllAnime.Count(a => a.Liked == true);
+    private int Disliked => AllAnime.Count(a => a.Liked == false);
     private int TotalEpisodes => AllAnime
-        .Where(a => a.WatchStatus == "Completed" && a.EpisodeCount.HasValue)
+        .Where(a => (a.WatchStatus == "Watched" || a.WatchStatus == "Read") && a.EpisodeCount.HasValue)
         .Sum(a => a.EpisodeCount!.Value);
-    private decimal AverageRating => AllAnime.Any(a => a.MyRating.HasValue)
+    private decimal AvgMyRating => AllAnime.Any(a => a.MyRating.HasValue)
         ? AllAnime.Where(a => a.MyRating.HasValue).Average(a => a.MyRating!.Value)
         : 0;
+    private decimal AvgMalRating => AllAnime.Any(a => a.AverageRating.HasValue)
+        ? AllAnime.Where(a => a.AverageRating.HasValue).Average(a => a.AverageRating!.Value)
+        : 0;
+
+    private List<(string Status, int Count)> StatusBreakdown = new();
+    private List<(string Genre, int Count)> GenreCounts = new();
+    private List<AnimeEntry> TopRated = new();
 
     protected override async Task OnInitializedAsync()
     {
         AllAnime = await AnimeService.GetAllAsync();
+
+        StatusBreakdown = new[]
+            { "Watched", "Watching", "Plan to Watch", "Reading", "Read", "Plan to Read", "Dropped", "On-Hold" }
+            .Select(s => (s, AllAnime.Count(a => a.WatchStatus == s)))
+            .Where(x => x.Item2 > 0)
+            .ToList();
+
+        GenreCounts = AllAnime
+            .Where(a => !string.IsNullOrWhiteSpace(a.Genre))
+            .SelectMany(a => a.Genre!.Split(',', StringSplitOptions.TrimEntries))
+            .Where(g => !string.IsNullOrWhiteSpace(g))
+            .GroupBy(g => g)
+            .Select(g => (g.Key, g.Count()))
+            .OrderByDescending(x => x.Item2)
+            .ToList();
+
+        TopRated = AllAnime
+            .Where(a => a.MyRating.HasValue)
+            .OrderByDescending(a => a.MyRating)
+            .Take(10)
+            .ToList();
+
         IsLoading = false;
     }
+
+    private void GoToDetail(int id) =>
+        NavigationManager.NavigateTo($"/anime/{id}");
+
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 }

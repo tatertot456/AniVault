@@ -781,3 +781,204 @@ a {
         padding: 1rem;
     }
 }
+
+/* --- Status Pills --- */
+.status-pill {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+    border: 1px solid transparent;
+}
+
+.status-watched {
+    background: rgba(46, 196, 182, 0.12);
+    color: #2ec4b6;
+    border-color: rgba(46, 196, 182, 0.25);
+}
+
+.status-watching {
+    background: rgba(245, 197, 24, 0.12);
+    color: var(--accent-gold);
+    border-color: rgba(245, 197, 24, 0.25);
+}
+
+.status-read {
+    background: rgba(96, 165, 250, 0.12);
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.25);
+}
+
+.status-reading {
+    background: rgba(167, 139, 250, 0.12);
+    color: #a78bfa;
+    border-color: rgba(167, 139, 250, 0.25);
+}
+
+.status-plan {
+    background: rgba(255, 255, 255, 0.06);
+    color: #aaaabb;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.status-dropped {
+    background: rgba(230, 57, 70, 0.12);
+    color: var(--accent-red);
+    border-color: rgba(230, 57, 70, 0.25);
+}
+
+.status-onhold {
+    background: rgba(251, 146, 60, 0.12);
+    color: #fb923c;
+    border-color: rgba(251, 146, 60, 0.25);
+}
+
+/* --- Stats Sections --- */
+.stats-section {
+    margin-top: 3rem;
+}
+
+.stats-section-title {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+}
+
+/* --- Status Breakdown Bars --- */
+.breakdown-row {
+    margin-bottom: 1.25rem;
+}
+
+.breakdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.4rem;
+}
+
+.breakdown-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.breakdown-count {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--accent-gold);
+}
+
+.breakdown-bar-bg {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.breakdown-bar-fill {
+    height: 100%;
+    background: var(--accent-gold);
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(.4, 0, .2, 1);
+}
+
+/* --- Genre Cloud --- */
+.genre-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.genre-tag {
+    padding: 0.3rem 0.85rem;
+    border-radius: 20px;
+    background: rgba(245, 197, 24, 0.08);
+    border: 1px solid rgba(245, 197, 24, 0.25);
+    color: var(--accent-gold);
+    letter-spacing: 0.04em;
+    transition: all var(--transition);
+    cursor: default;
+}
+
+    .genre-tag:hover {
+        background: rgba(245, 197, 24, 0.18);
+    }
+
+.genre-count {
+    font-size: 0.75em;
+    opacity: 0.7;
+    margin-left: 0.25rem;
+}
+
+/* --- Top Rated List --- */
+.top-rated-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.top-rated-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: border-color var(--transition), transform var(--transition);
+}
+
+    .top-rated-row:hover {
+        border-color: var(--accent-gold);
+        transform: translateX(4px);
+    }
+
+.top-rated-rank {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    width: 2rem;
+    text-align: center;
+}
+
+.top-rated-img {
+    width: 45px;
+    height: 63px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.top-rated-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.top-rated-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.top-rated-status {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.top-rated-score {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    color: var(--accent-gold);
+    letter-spacing: 0.05em;
+}

@@ -42,7 +42,7 @@ else
                 <h1 class="detail-title">@Entry.Title</h1>
 
                 <div class="detail-meta">
-                    <span class="detail-badge">@Entry.WatchStatus</span>
+                    <span class="status-pill @GetStatusClass(Entry.WatchStatus)">@Entry.WatchStatus</span>
                     @if (Entry.EpisodeCount.HasValue)
                     {
                         <span class="detail-badge">@Entry.EpisodeCount eps</span>
@@ -151,4 +151,17 @@ else
         Toast.Show("Removed from vault.", ToastType.Info);
         Nav.NavigateTo("/");
     }
+
+    private string GetStatusClass(string? status) => status switch
+    {
+        "Watched" => "status-watched",
+        "Watching" => "status-watching",
+        "Read" => "status-read",
+        "Reading" => "status-reading",
+        "Plan to Watch" => "status-plan",
+        "Plan to Read" => "status-plan",
+        "Dropped" => "status-dropped",
+        "On-Hold" => "status-onhold",
+        _ => ""
+    };
 }

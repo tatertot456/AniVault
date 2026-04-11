@@ -78,12 +78,21 @@ namespace AniVault.Services
         {
             try
             {
-                await Task.Delay(400); // Respect Jikan rate limit
-                var url = $"https://api.jikan.moe/v4/anime?q={Uri.EscapeDataString(query)}&limit=8";
+                await Task.Delay(1000); // Respect Jikan rate limit
+                var url = $"https://api.jikan.moe/v4/anime?q={Uri.EscapeDataString(query)}&limit=8&sfw=false";
+
                 var response = await _http.GetAsync(url);
-                response.EnsureSuccessStatusCode();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Jikan returned {Status} for query: {Query}",
+                        response.StatusCode, query);
+                    return new List<JikanAnimeResult>();
+                }
 
                 var json = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("Jikan response: {Json}", json[..Math.Min(200, json.Length)]);
+
                 var doc = JsonDocument.Parse(json);
                 var dataElement = doc.RootElement.GetProperty("data");
 
