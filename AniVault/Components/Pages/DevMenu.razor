@@ -152,4 +152,19 @@
                 ? string.Join(", ", result.Genres.Select(g => g.Name))
                 : null,
             TrailerUrl = result.Trailer?.EmbedUrl ?? result.Trailer?.Url,
-            WatchStatus = SelectedStatuses.GetValueOrDefault(result.MalId,
+            WatchStatus = SelectedStatuses.GetValueOrDefault(result.MalId, "Plan to Watch"),
+            MyRating = MyRatings.GetValueOrDefault(result.MalId),
+            Liked = LikedMap.GetValueOrDefault(result.MalId),
+            DateAdded = DateTime.Now
+        };
+
+        await AnimeService.AddAsync(entry);
+        Toast.Show($"{entry.Title} added to vault!", ToastType.Success);
+
+        AddingIds.Remove(result.MalId);
+        SearchResults.Remove(result);
+    }
+
+    private string Truncate(string? s, int max) =>
+        s == null ? "" : s.Length <= max ? s : s[..max].TrimEnd() + "…";
+}

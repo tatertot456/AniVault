@@ -57,4 +57,51 @@
                         <span class="anime-card-score">@entry.MyRating.Value.ToString("F1")</span>
                     }
 
-                    <button
+                    <button class="card-fav-btn @(entry.IsFavorite ? "fav-active" : "")"
+                            @onclick:stopPropagation="true"
+                            @onclick="() => ToggleFavorite(entry)">
+                        @(entry.IsFavorite ? "★" : "☆")
+                    </button>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<AnimeEntry> AllAnime = new();
+    private List<AnimeEntry> FilteredAnime = new();
+    private string ActiveFilter = "All";
+    private bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AllAnime = await AnimeService.GetAllAsync();
+        ApplyFilter();
+        IsLoading = false;
+    }
+
+    private void SetFilter(string filter)
+    {
+        ActiveFilter = filter;
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        FilteredAnime = ActiveFilter == "All"
+            ? AllAnime
+            : AllAnime.Where(a => a.WatchStatus == ActiveFilter).ToList();
+    }
+
+    private void GoToDetail(int id)
+    {
+        Nav.NavigateTo($"/anime/{id}");
+    }
+
+    private async Task ToggleFavorite(AnimeEntry entry)
+    {
+        await AnimeService.ToggleFavoriteAsync(entry.Id);
+        entry.IsFavorite = !entry.IsFavorite;
+    }
+}

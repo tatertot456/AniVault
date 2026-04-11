@@ -16,7 +16,7 @@
             <div class="spinner"></div>
         </div>
     }
-    else if (!Favorites.Any())
+    else if (!FavoritesList.Any())
     {
         <div class="empty-state">
             <p>No favorites yet. Star some anime from the gallery!</p>
@@ -25,7 +25,7 @@
     else
     {
         <div class="anime-grid">
-            @foreach (var entry in Favorites)
+            @foreach (var entry in FavoritesList)
             {
                 <div class="anime-card" @onclick="() => GoToDetail(entry.Id)">
                     @if (!string.IsNullOrWhiteSpace(entry.CoverImageUrl))
@@ -58,12 +58,12 @@
 </div>
 
 @code {
-    private List<AnimeEntry> Favorites = new();
+    private List<AnimeEntry> FavoritesList = new();
     private bool IsLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        Favorites = await AnimeService.GetFavoritesAsync();
+        FavoritesList = await AnimeService.GetFavoritesAsync();
         IsLoading = false;
     }
 
