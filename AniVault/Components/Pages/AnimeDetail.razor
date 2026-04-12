@@ -1,4 +1,5 @@
 ﻿@page "/anime/{Id:int}"
+@page "/anime/{Id:int}/{From}"
 @inject AnimeService AnimeService
 @inject NavigationManager Nav
 @inject ToastService Toast
@@ -223,6 +224,7 @@ else
 
 @code {
     [Parameter] public int Id { get; set; }
+    [Parameter] public string? From { get; set; }
 
     private AnimeEntry? Entry;
     private bool IsLoading = true;
@@ -242,7 +244,15 @@ else
         IsLoading = false;
     }
 
-    private void GoBack() => Nav.NavigateTo("/vault");
+    private void GoBack()
+    {
+        if (From == "favorites")
+            Nav.NavigateTo("/favorites");
+        else if (From == "home")
+            Nav.NavigateTo("/");
+        else
+            Nav.NavigateTo("/vault");
+    }
 
     private void ToggleEdit()
     {

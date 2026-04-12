@@ -199,7 +199,7 @@
     private void GoToDetail(int id)
     {
         CloseSpotlight();
-        Nav.NavigateTo($"/anime/{id}");
+        Nav.NavigateTo($"/anime/{id}/favorites");
     }
 
     private string Truncate(string? s, int max) =>

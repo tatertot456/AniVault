@@ -83,7 +83,7 @@
 {
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Recently Added</h2>
+            <h2 class="section-title">@(InProgress.Any() ? "More from the Vault" : "Recently Added")</h2>
             <a href="/vault" class="view-all-link">View All →</a>
         </div>
         <div class="anime-grid">
@@ -150,7 +150,7 @@
             .ToList();
     }
 
-    private void GoToDetail(int id) => Nav.NavigateTo($"/anime/{id}");
+    private void GoToDetail(int id) => Nav.NavigateTo($"/anime/{id}/home");
 
     private string Truncate(string? s, int max) =>
         s == null ? "" : s.Length <= max ? s : s[..max].TrimEnd() + "…";
