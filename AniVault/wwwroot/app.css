@@ -1819,3 +1819,192 @@ a {
     color: var(--bg-base) !important;
     font-weight: 700;
 }
+
+/* --- Activity Log --- */
+.activity-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    max-width: 860px;
+}
+
+.activity-date-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.activity-date-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.activity-date-label {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    letter-spacing: 0.06em;
+    color: var(--text-primary);
+}
+
+.activity-date-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+}
+
+.activity-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background var(--transition);
+    position: relative;
+}
+
+    .activity-row:hover {
+        background: var(--bg-card);
+    }
+
+.activity-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 16px;
+    align-self: stretch;
+}
+
+.activity-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+    background: var(--text-muted);
+}
+
+    .activity-dot.status-watched {
+        background: #2ec4b6;
+    }
+
+    .activity-dot.status-watching {
+        background: var(--accent-gold);
+    }
+
+    .activity-dot.status-read {
+        background: #60a5fa;
+    }
+
+    .activity-dot.status-reading {
+        background: #a78bfa;
+    }
+
+    .activity-dot.status-plan {
+        background: #fbbf24;
+    }
+
+    .activity-dot.status-dropped {
+        background: var(--accent-red);
+    }
+
+    .activity-dot.status-onhold {
+        background: #fb923c;
+    }
+
+.activity-line {
+    flex: 1;
+    width: 2px;
+    background: var(--border);
+    margin-top: 4px;
+}
+
+.activity-row:last-child .activity-line {
+    display: none;
+}
+
+.activity-poster {
+    width: 42px;
+    height: 58px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+}
+
+.activity-poster-empty {
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
+
+.activity-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.activity-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activity-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.activity-rating {
+    font-size: 0.8rem;
+    color: var(--accent-gold);
+}
+
+.activity-liked {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+}
+
+    .activity-liked.liked-yes {
+        color: #f472b6;
+        background: rgba(244, 114, 182, 0.12);
+        border: 1px solid rgba(244, 114, 182, 0.3);
+    }
+
+    .activity-liked.liked-no {
+        color: #e07060;
+        background: rgba(224, 112, 96, 0.12);
+        border: 1px solid rgba(224, 112, 96, 0.3);
+    }
+
+.activity-notes {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    letter-spacing: 0.03em;
+}
