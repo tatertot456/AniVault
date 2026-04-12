@@ -168,6 +168,7 @@ a {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+    margin-bottom: 1.5rem;
 }
 
 .chip {
@@ -1552,4 +1553,69 @@ a {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
+}
+
+/* --- Vault Controls --- */
+.vault-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.vault-search {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+}
+
+.vault-search-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    pointer-events: none;
+}
+
+.vault-search-input {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    padding: 0.65rem 1rem 0.65rem 2.25rem;
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+    .vault-search-input:focus {
+        border-color: var(--accent-gold);
+    }
+
+.vault-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    margin-left: auto;
+}
+
+/* --- Chip Counts --- */
+.chip-count {
+    display: inline-block;
+    font-size: 0.7rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 0.05rem 0.4rem;
+    margin-left: 0.3rem;
+    font-weight: 600;
+}
+
+.chip-active .chip-count {
+    background: rgba(0, 0, 0, 0.2);
 }

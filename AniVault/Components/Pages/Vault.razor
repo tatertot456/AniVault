@@ -8,17 +8,57 @@
 <div class="section">
     <div class="section-header">
         <h1 class="section-title">The Vault</h1>
-        <div class="filter-chips">
-            <button class="chip @(ActiveFilter == "All" ? "chip-active" : "")" @onclick='() => SetFilter("All")'>All</button>
-            <button class="chip @(ActiveFilter == "Watched" ? "chip-active" : "")" @onclick='() => SetFilter("Watched")'>Watched</button>
-            <button class="chip @(ActiveFilter == "Watching" ? "chip-active" : "")" @onclick='() => SetFilter("Watching")'>Watching</button>
-            <button class="chip @(ActiveFilter == "Read" ? "chip-active" : "")" @onclick='() => SetFilter("Read")'>Read</button>
-            <button class="chip @(ActiveFilter == "Reading" ? "chip-active" : "")" @onclick='() => SetFilter("Reading")'>Reading</button>
-            <button class="chip @(ActiveFilter == "Plan to Watch" ? "chip-active" : "")" @onclick='() => SetFilter("Plan to Watch")'>Plan to Watch</button>
-            <button class="chip @(ActiveFilter == "Plan to Read" ? "chip-active" : "")" @onclick='() => SetFilter("Plan to Read")'>Plan to Read</button>
-            <button class="chip @(ActiveFilter == "On-Hold" ? "chip-active" : "")" @onclick='() => SetFilter("On-Hold")'>On-Hold</button>
-            <button class="chip @(ActiveFilter == "Dropped" ? "chip-active" : "")" @onclick='() => SetFilter("Dropped")'>Dropped</button>
+        <span class="vault-count">@FilteredAnime.Count entries</span>
+    </div>
+
+    <!-- Search and Sort Row -->
+    <div class="vault-controls">
+        <div class="vault-search">
+            <span class="vault-search-icon">⌕</span>
+            <input class="vault-search-input"
+                   type="text"
+                   placeholder="Search titles..."
+                   @bind="SearchQuery"
+                   @bind:event="oninput" />
         </div>
+        <select class="dev-select" @bind="SortOrder" @bind:after="ApplyFilter">
+            <option value="recent">Recently Added</option>
+            <option value="alpha">A → Z</option>
+            <option value="rating_desc">My Rating ↓</option>
+            <option value="rating_asc">My Rating ↑</option>
+            <option value="mal_desc">MAL Score ↓</option>
+        </select>
+    </div>
+
+    <!-- Filter Chips with counts -->
+    <div class="filter-chips">
+        <button class="chip @(ActiveFilter == "All" ? "chip-active" : "")" @onclick='() => SetFilter("All")'>
+            All <span class="chip-count">@AllAnime.Count</span>
+        </button>
+        <button class="chip @(ActiveFilter == "Watched" ? "chip-active" : "")" @onclick='() => SetFilter("Watched")'>
+            Watched <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Watched")</span>
+        </button>
+        <button class="chip @(ActiveFilter == "Watching" ? "chip-active" : "")" @onclick='() => SetFilter("Watching")'>
+            Watching <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Watching")</span>
+        </button>
+        <button class="chip @(ActiveFilter == "Read" ? "chip-active" : "")" @onclick='() => SetFilter("Read")'>
+            Read <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Read")</span>
+        </button>
+        <button class="chip @(ActiveFilter == "Reading" ? "chip-active" : "")" @onclick='() => SetFilter("Reading")'>
+            Reading <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Reading")</span>
+        </button>
+        <button class="chip @(ActiveFilter == "Plan to Watch" ? "chip-active" : "")" @onclick='() => SetFilter("Plan to Watch")'>
+            Plan to Watch <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Plan to Watch")</span>
+        </button>
+        <button class="chip @(ActiveFilter == "Plan to Read" ? "chip-active" : "")" @onclick='() => SetFilter("Plan to Read")'>
+            Plan to Read <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Plan to Read")</span>
+        </button>
+        <button class="chip @(ActiveFilter == "On-Hold" ? "chip-active" : "")" @onclick='() => SetFilter("On-Hold")'>
+            On-Hold <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "On-Hold")</span>
+        </button>
+        <button class="chip @(ActiveFilter == "Dropped" ? "chip-active" : "")" @onclick='() => SetFilter("Dropped")'>
+            Dropped <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Dropped")</span>
+        </button>
     </div>
 
     @if (IsLoading)
@@ -30,7 +70,7 @@
     else if (!FilteredAnime.Any())
     {
         <div class="empty-state">
-            <p>No anime found. Add some from the <a href="/dev">Dev Menu</a>!</p>
+            <p>No anime found. Try a different search or filter!</p>
         </div>
     }
     else
@@ -74,19 +114,13 @@
 {
     <div class="spotlight-overlay" @onclick="CloseSpotlight">
         <div class="spotlight-panel" @onclick:stopPropagation="true">
-
-            <!-- Blurred backdrop -->
             @if (!string.IsNullOrWhiteSpace(SpotlightEntry.CoverImageUrl))
             {
                 <div class="spotlight-bg"
                      style="background-image:url('@SpotlightEntry.CoverImageUrl')"></div>
             }
-
-            <!-- Close -->
             <button class="spotlight-close" @onclick="CloseSpotlight">✕</button>
-
             <div class="spotlight-body">
-                <!-- Poster -->
                 <div class="spotlight-poster-wrap">
                     @if (!string.IsNullOrWhiteSpace(SpotlightEntry.CoverImageUrl))
                     {
@@ -95,15 +129,12 @@
                              alt="@SpotlightEntry.Title" />
                     }
                 </div>
-
-                <!-- Info -->
                 <div class="spotlight-info">
-                    <span class="status-pill @GetStatusClass(SpotlightEntry.WatchStatus)" style="margin-bottom:0.75rem;display:inline-block;">
+                    <span class="status-pill @GetStatusClass(SpotlightEntry.WatchStatus)"
+                          style="margin-bottom:0.75rem;display:inline-block;">
                         @SpotlightEntry.WatchStatus
                     </span>
                     <h2 class="spotlight-title">@SpotlightEntry.Title</h2>
-
-                    <!-- Genre tags -->
                     @if (!string.IsNullOrWhiteSpace(SpotlightEntry.Genre))
                     {
                         <div class="spotlight-tags">
@@ -123,14 +154,10 @@
                             }
                         </div>
                     }
-
-                    <!-- Synopsis -->
                     @if (!string.IsNullOrWhiteSpace(SpotlightEntry.Description))
                     {
                         <p class="spotlight-synopsis">@Truncate(SpotlightEntry.Description, 280)</p>
                     }
-
-                    <!-- Stats row -->
                     <div class="spotlight-stats">
                         <div class="spotlight-stat">
                             <span class="spotlight-stat-label">MAL Score</span>
@@ -145,14 +172,10 @@
                             <span class="spotlight-stat-value">@(SpotlightEntry.EpisodeCount?.ToString() ?? "—")</span>
                         </div>
                     </div>
-
-                    <!-- Notes -->
                     @if (!string.IsNullOrWhiteSpace(SpotlightEntry.Notes))
                     {
                         <div class="spotlight-notes">@SpotlightEntry.Notes</div>
                     }
-
-                    <!-- Actions -->
                     <div class="spotlight-actions">
                         <button class="btn btn-gold" @onclick="() => GoToDetail(SpotlightEntry.Id)">
                             Full Entry →
@@ -173,6 +196,8 @@
     private List<AnimeEntry> AllAnime = new();
     private List<AnimeEntry> FilteredAnime = new();
     private string ActiveFilter = "All";
+    private string SearchQuery = string.Empty;
+    private string SortOrder = "recent";
     private bool IsLoading = true;
     private AnimeEntry? SpotlightEntry;
 
@@ -191,13 +216,29 @@
 
     private void ApplyFilter()
     {
-        FilteredAnime = ActiveFilter == "All"
-            ? AllAnime
-            : AllAnime.Where(a => a.WatchStatus == ActiveFilter).ToList();
+        var query = AllAnime.AsEnumerable();
+
+        if (ActiveFilter != "All")
+            query = query.Where(a => a.WatchStatus == ActiveFilter);
+
+        if (!string.IsNullOrWhiteSpace(SearchQuery))
+            query = query.Where(a => a.Title.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+
+        query = SortOrder switch
+        {
+            "alpha" => query.OrderBy(a => a.Title),
+            "rating_desc" => query.OrderByDescending(a => a.MyRating ?? -1),
+            "rating_asc" => query.OrderBy(a => a.MyRating ?? 999),
+            "mal_desc" => query.OrderByDescending(a => a.AverageRating ?? -1),
+            _ => query.OrderByDescending(a => a.DateAdded)
+        };
+
+        FilteredAnime = query.ToList();
     }
 
     private void OpenSpotlight(AnimeEntry entry) => SpotlightEntry = entry;
     private void CloseSpotlight() => SpotlightEntry = null;
+
     private void GoToDetail(int id)
     {
         CloseSpotlight();
