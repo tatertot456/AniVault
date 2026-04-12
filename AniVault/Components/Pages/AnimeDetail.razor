@@ -21,7 +21,6 @@ else if (Entry == null)
 else
 {
     <div class="detail-shell">
-        <!-- Back Button -->
         <button class="btn-back" @onclick="GoBack">← Back</button>
 
         <div class="detail-hero">
@@ -49,7 +48,10 @@ else
                     }
                     @if (!string.IsNullOrWhiteSpace(Entry.Genre))
                     {
-                        <span class="detail-badge">@Entry.Genre</span>
+                        @foreach (var g in Entry.Genre.Split(',', StringSplitOptions.TrimEntries))
+                        {
+                            <span class="genre-tag">@g</span>
+                        }
                     }
                 </div>
 
@@ -98,28 +100,92 @@ else
                     <button class="btn btn-gold" @onclick="ToggleFavorite">
                         @(Entry.IsFavorite ? "★ Favorited" : "☆ Add to Favorites")
                     </button>
+                    <button class="btn btn-outline" @onclick="ToggleEdit">
+                        @(IsEditing ? "✕ Cancel Edit" : "✏ Edit Entry")
+                    </button>
                     <button class="btn btn-danger" @onclick="ConfirmDelete">
                         🗑 Remove
                     </button>
-
-                    @if (ShowDeleteConfirm)
-                    {
-                        <div class="confirm-overlay">
-                            <div class="confirm-box">
-                                <h3 class="confirm-title">Remove from Vault?</h3>
-                                <p class="confirm-message">
-                                    Are you sure you want to remove <strong>@Entry.Title</strong> from your vault? This cannot be undone.
-                                </p>
-                                <div class="confirm-actions">
-                                    <button class="btn btn-danger" @onclick="DeleteEntry">Yes, Remove</button>
-                                    <button class="btn btn-back" @onclick="CancelDelete">Cancel</button>
-                                </div>
-                            </div>
-                        </div>
-                    }
                 </div>
             </div>
         </div>
+
+        <!-- Inline Edit Panel -->
+        @if (IsEditing)
+        {
+            <div class="edit-panel">
+                <h2 class="edit-panel-title">Edit Entry</h2>
+                <div class="edit-panel-grid">
+
+                    <div class="dev-panel-field">
+                        <label class="dev-panel-label">Watch Status</label>
+                        <select class="dev-select" @bind="EditStatus">
+                            <option>Plan to Watch</option>
+                            <option>Watching</option>
+                            <option>Watched</option>
+                            <option>Plan to Read</option>
+                            <option>Reading</option>
+                            <option>Read</option>
+                            <option>On-Hold</option>
+                            <option>Dropped</option>
+                        </select>
+                    </div>
+
+                    <div class="dev-panel-field">
+                        <label class="dev-panel-label">My Rating (0–10)</label>
+                        <input class="dev-input-small" type="number"
+                               min="0" max="10" step="0.1"
+                               placeholder="Leave blank to rate later"
+                               @bind="EditRating" />
+                    </div>
+
+                    <div class="dev-panel-field">
+                        <label class="dev-panel-label">Did you like it?</label>
+                        <div class="liked-toggle">
+                            <button class="liked-btn @(EditLiked == true ? "liked-btn-yes" : "")"
+                                    @onclick='() => EditLiked = EditLiked == true ? null : true'>
+                                ♥ Liked
+                            </button>
+                            <button class="liked-btn @(EditLiked == false ? "liked-btn-no" : "")"
+                                    @onclick='() => EditLiked = EditLiked == false ? null : false'>
+                                ✕ Disliked
+                            </button>
+                            <button class="liked-btn @(EditLiked == null ? "liked-btn-neutral" : "")"
+                                    @onclick="() => EditLiked = null">
+                                — Undecided
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="dev-panel-field">
+                        <label class="dev-panel-label">Favorite?</label>
+                        <div class="liked-toggle">
+                            <button class="liked-btn @(EditFavorite ? "liked-btn-yes" : "")"
+                                    @onclick="() => EditFavorite = true">
+                                ★ Yes
+                            </button>
+                            <button class="liked-btn @(!EditFavorite ? "liked-btn-neutral" : "")"
+                                    @onclick="() => EditFavorite = false">
+                                ☆ No
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="dev-panel-field dev-panel-field-full">
+                        <label class="dev-panel-label">Notes</label>
+                        <textarea class="dev-textarea" rows="4"
+                                  placeholder="Your thoughts, comments..."
+                                  @bind="EditNotes"></textarea>
+                    </div>
+
+                </div>
+
+                <div class="edit-panel-actions">
+                    <button class="btn btn-gold" @onclick="SaveEdit">💾 Save Changes</button>
+                    <button class="btn btn-back" @onclick="ToggleEdit">Cancel</button>
+                </div>
+            </div>
+        }
 
         <!-- Trailer -->
         @if (!string.IsNullOrWhiteSpace(Entry.TrailerUrl))
@@ -135,6 +201,23 @@ else
                 </div>
             </div>
         }
+
+        <!-- Delete Confirmation -->
+        @if (ShowDeleteConfirm)
+        {
+            <div class="confirm-overlay">
+                <div class="confirm-box">
+                    <h3 class="confirm-title">Remove from Vault?</h3>
+                    <p class="confirm-message">
+                        Are you sure you want to remove <strong>@Entry.Title</strong> from your vault? This cannot be undone.
+                    </p>
+                    <div class="confirm-actions">
+                        <button class="btn btn-danger" @onclick="DeleteEntry">Yes, Remove</button>
+                        <button class="btn btn-back" @onclick="CancelDelete">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }
 
@@ -143,6 +226,15 @@ else
 
     private AnimeEntry? Entry;
     private bool IsLoading = true;
+    private bool IsEditing = false;
+    private bool ShowDeleteConfirm = false;
+
+    // Edit fields
+    private string EditStatus = string.Empty;
+    private decimal? EditRating;
+    private bool? EditLiked;
+    private bool EditFavorite;
+    private string EditNotes = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,7 +242,34 @@ else
         IsLoading = false;
     }
 
-    private void GoBack() => Nav.NavigateTo("/");
+    private void GoBack() => Nav.NavigateTo("/vault");
+
+    private void ToggleEdit()
+    {
+        if (Entry == null) return;
+        IsEditing = !IsEditing;
+        if (IsEditing)
+        {
+            EditStatus = Entry.WatchStatus;
+            EditRating = Entry.MyRating;
+            EditLiked = Entry.Liked;
+            EditFavorite = Entry.IsFavorite;
+            EditNotes = Entry.Notes ?? string.Empty;
+        }
+    }
+
+    private async Task SaveEdit()
+    {
+        if (Entry == null) return;
+        Entry.WatchStatus = EditStatus;
+        Entry.MyRating = EditRating;
+        Entry.Liked = EditLiked;
+        Entry.IsFavorite = EditFavorite;
+        Entry.Notes = string.IsNullOrWhiteSpace(EditNotes) ? null : EditNotes;
+        await AnimeService.UpdateAsync(Entry);
+        Toast.Show("Entry updated!", ToastType.Success);
+        IsEditing = false;
+    }
 
     private async Task ToggleFavorite()
     {
@@ -160,8 +279,6 @@ else
         Toast.Show(Entry.IsFavorite ? "Added to favorites!" : "Removed from favorites.", ToastType.Success);
     }
 
-    private bool ShowDeleteConfirm = false;
-
     private void ConfirmDelete() => ShowDeleteConfirm = true;
     private void CancelDelete() => ShowDeleteConfirm = false;
 
@@ -170,7 +287,7 @@ else
         if (Entry == null) return;
         await AnimeService.DeleteAsync(Entry.Id);
         Toast.Show("Removed from vault.", ToastType.Info);
-        Nav.NavigateTo("/");
+        Nav.NavigateTo("/vault");
     }
 
     private string GetStatusClass(string? status) => status switch

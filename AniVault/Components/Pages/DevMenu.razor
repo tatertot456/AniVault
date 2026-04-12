@@ -31,19 +31,19 @@
         <div class="dev-results">
             @foreach (var result in SearchResults)
             {
-                <div class="dev-result-card">
+                <div class="dev-result-card @(AddedIds.Contains(result.MalId) ? "dev-result-added" : "")"
+                     @onclick="() => OpenAddPanel(result)">
                     @if (!string.IsNullOrWhiteSpace(result.Images?.Jpg?.LargeImageUrl))
                     {
                         <img class="dev-result-poster"
                              src="@result.Images.Jpg.LargeImageUrl"
                              alt="@result.Title poster" />
                     }
-
                     <div class="dev-result-info">
                         <h3 class="dev-result-title">@(result.TitleEnglish ?? result.Title)</h3>
                         @if (!string.IsNullOrWhiteSpace(result.Synopsis))
                         {
-                            <p class="dev-result-synopsis">@Truncate(result.Synopsis, 200)</p>
+                            <p class="dev-result-synopsis">@Truncate(result.Synopsis, 160)</p>
                         }
                         <div class="dev-result-meta">
                             @if (result.Score.HasValue)
@@ -59,37 +59,14 @@
                                 <span class="detail-badge">@string.Join(", ", result.Genres.Select(g => g.Name))</span>
                             }
                         </div>
-
-                        <!-- Add Form -->
-                        <div class="dev-add-form">
-                            <select class="dev-select" @bind="SelectedStatuses[result.MalId]">
-                                <option>Plan to Watch</option>
-                                <option>Watching</option>
-                                <option>Watched</option>
-                                <option>Plan to Read</option>
-                                <option>Reading</option>
-                                <option>Read</option>
-                                <option>On-Hold</option>
-                                <option>Dropped</option>
-                            </select>
-
-                            <input class="dev-input-small"
-                                   type="number"
-                                   placeholder="My Rating (0-10)"
-                                   min="0" max="10" step="0.1"
-                                   @bind="MyRatings[result.MalId]" />
-
-                            <label class="dev-checkbox-label">
-                                <input type="checkbox" @bind="LikedMap[result.MalId]" />
-                                Liked
-                            </label>
-
-                            <button class="btn btn-gold"
-                                    @onclick="() => AddToVault(result)"
-                                    disabled="@AddingIds.Contains(result.MalId)">
-                                @(AddingIds.Contains(result.MalId) ? "Adding..." : "+ Add to Vault")
-                            </button>
-                        </div>
+                        @if (AddedIds.Contains(result.MalId))
+                        {
+                            <span class="dev-added-badge">✓ Added to Vault</span>
+                        }
+                        else
+                        {
+                            <span class="dev-click-hint">Click to add →</span>
+                        }
                     </div>
                 </div>
             }
@@ -103,16 +80,151 @@
     }
 </div>
 
+<!-- Add Panel Modal -->
+@if (SelectedResult != null)
+{
+    <div class="spotlight-overlay" @onclick="CloseAddPanel">
+        <div class="spotlight-panel dev-add-panel" @onclick:stopPropagation="true">
+
+            <!-- Blurred backdrop -->
+            @if (!string.IsNullOrWhiteSpace(SelectedResult.Images?.Jpg?.LargeImageUrl))
+            {
+                <div class="spotlight-bg"
+                     style="background-image:url('@SelectedResult.Images.Jpg.LargeImageUrl')"></div>
+            }
+
+            <button class="spotlight-close" @onclick="CloseAddPanel">✕</button>
+
+            <div class="spotlight-body">
+                <!-- Poster -->
+                <div class="spotlight-poster-wrap">
+                    @if (!string.IsNullOrWhiteSpace(SelectedResult.Images?.Jpg?.LargeImageUrl))
+                    {
+                        <img class="spotlight-poster"
+                             src="@SelectedResult.Images.Jpg.LargeImageUrl"
+                             alt="@SelectedResult.Title" />
+                    }
+                </div>
+
+                <!-- Form -->
+                <div class="spotlight-info">
+                    <h2 class="spotlight-title">@(SelectedResult.TitleEnglish ?? SelectedResult.Title)</h2>
+
+                    <div class="spotlight-tags" style="margin-bottom:1rem;">
+                        @if (SelectedResult.Score.HasValue)
+                        {
+                            <span class="detail-badge">⭐ @SelectedResult.Score.Value.ToString("F1")</span>
+                        }
+                        @if (SelectedResult.Episodes.HasValue)
+                        {
+                            <span class="detail-badge">@SelectedResult.Episodes eps</span>
+                        }
+                        @if (SelectedResult.Genres?.Any() == true)
+                        {
+                            @foreach (var g in SelectedResult.Genres)
+                            {
+                                <span class="genre-tag">@g.Name</span>
+                            }
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(SelectedResult.Synopsis))
+                    {
+                        <p class="spotlight-synopsis">@Truncate(SelectedResult.Synopsis, 200)</p>
+                    }
+
+                    <!-- Add Form Fields -->
+                    <div class="dev-panel-form">
+
+                        <div class="dev-panel-field">
+                            <label class="dev-panel-label">Watch Status</label>
+                            <select class="dev-select" @bind="NewStatus">
+                                <option>Plan to Watch</option>
+                                <option>Watching</option>
+                                <option>Watched</option>
+                                <option>Plan to Read</option>
+                                <option>Reading</option>
+                                <option>Read</option>
+                                <option>On-Hold</option>
+                                <option>Dropped</option>
+                            </select>
+                        </div>
+
+                        <div class="dev-panel-field">
+                            <label class="dev-panel-label">My Rating (0–10)</label>
+                            <input class="dev-input-small" type="number"
+                                   min="0" max="10" step="0.1"
+                                   placeholder="Leave blank to rate later"
+                                   @bind="NewRating" />
+                        </div>
+
+                        <div class="dev-panel-field">
+                            <label class="dev-panel-label">Did you like it?</label>
+                            <div class="liked-toggle">
+                                <button class="liked-btn @(NewLiked == true ? "liked-btn-yes" : "")"
+                                        @onclick='() => NewLiked = NewLiked == true ? null : true'>
+                                    ♥ Liked
+                                </button>
+                                <button class="liked-btn @(NewLiked == false ? "liked-btn-no" : "")"
+                                        @onclick='() => NewLiked = NewLiked == false ? null : false'>
+                                    ✕ Disliked
+                                </button>
+                                <button class="liked-btn @(NewLiked == null ? "liked-btn-neutral" : "")"
+                                        @onclick="() => NewLiked = null">
+                                    — Undecided
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="dev-panel-field">
+                            <label class="dev-panel-label">Favorite?</label>
+                            <div class="liked-toggle">
+                                <button class="liked-btn @(NewFavorite ? "liked-btn-yes" : "")"
+                                        @onclick="() => NewFavorite = true">
+                                    ★ Yes
+                                </button>
+                                <button class="liked-btn @(!NewFavorite ? "liked-btn-neutral" : "")"
+                                        @onclick="() => NewFavorite = false">
+                                    ☆ No
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="dev-panel-field dev-panel-field-full">
+                            <label class="dev-panel-label">Notes</label>
+                            <textarea class="dev-textarea" rows="3"
+                                      placeholder="Initial thoughts, why you added it..."
+                                      @bind="NewNotes"></textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="spotlight-actions">
+                        <button class="btn btn-gold" @onclick="AddToVault" disabled="@IsAdding">
+                            @(IsAdding ? "Adding..." : "+ Add to Vault")
+                        </button>
+                        <button class="btn btn-back" @onclick="CloseAddPanel">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private string SearchQuery = string.Empty;
     private List<JikanAnimeResult> SearchResults = new();
     private bool IsSearching = false;
     private bool HasSearched = false;
+    private HashSet<int> AddedIds = new();
 
-    private Dictionary<int, string> SelectedStatuses = new();
-    private Dictionary<int, decimal?> MyRatings = new();
-    private Dictionary<int, bool> LikedMap = new();
-    private HashSet<int> AddingIds = new();
+    private JikanAnimeResult? SelectedResult;
+    private string NewStatus = "Plan to Watch";
+    private decimal? NewRating;
+    private bool? NewLiked;
+    private bool NewFavorite = false;
+    private string NewNotes = string.Empty;
+    private bool IsAdding = false;
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
@@ -125,48 +237,52 @@
         IsSearching = true;
         HasSearched = true;
         SearchResults = new();
-
         SearchResults = await JikanService.SearchAsync(SearchQuery);
-
-        foreach (var r in SearchResults)
-        {
-            if (!SelectedStatuses.ContainsKey(r.MalId))
-                SelectedStatuses[r.MalId] = "Plan to Watch";
-            if (!MyRatings.ContainsKey(r.MalId))
-                MyRatings[r.MalId] = null;
-            if (!LikedMap.ContainsKey(r.MalId))
-                LikedMap[r.MalId] = false;
-        }
-
         IsSearching = false;
     }
 
-    private async Task AddToVault(JikanAnimeResult result)
+    private void OpenAddPanel(JikanAnimeResult result)
     {
-        AddingIds.Add(result.MalId);
+        if (AddedIds.Contains(result.MalId)) return;
+        SelectedResult = result;
+        NewStatus = "Plan to Watch";
+        NewRating = null;
+        NewLiked = null;
+        NewFavorite = false;
+        NewNotes = string.Empty;
+    }
+
+    private void CloseAddPanel() => SelectedResult = null;
+
+    private async Task AddToVault()
+    {
+        if (SelectedResult == null) return;
+        IsAdding = true;
 
         var entry = new AnimeEntry
         {
-            Title = result.TitleEnglish ?? result.Title ?? "Unknown",
-            CoverImageUrl = result.Images?.Jpg?.LargeImageUrl,
-            Description = result.Synopsis,
-            AverageRating = result.Score,
-            EpisodeCount = result.Episodes,
-            Genre = result.Genres != null
-                ? string.Join(", ", result.Genres.Select(g => g.Name))
+            Title = SelectedResult.TitleEnglish ?? SelectedResult.Title ?? "Unknown",
+            CoverImageUrl = SelectedResult.Images?.Jpg?.LargeImageUrl,
+            Description = SelectedResult.Synopsis,
+            AverageRating = SelectedResult.Score,
+            EpisodeCount = SelectedResult.Episodes,
+            Genre = SelectedResult.Genres != null
+                ? string.Join(", ", SelectedResult.Genres.Select(g => g.Name))
                 : null,
-            TrailerUrl = result.Trailer?.EmbedUrl ?? result.Trailer?.Url,
-            WatchStatus = SelectedStatuses.GetValueOrDefault(result.MalId, "Plan to Watch"),
-            MyRating = MyRatings.GetValueOrDefault(result.MalId),
-            Liked = LikedMap.GetValueOrDefault(result.MalId),
+            TrailerUrl = SelectedResult.Trailer?.EmbedUrl ?? SelectedResult.Trailer?.Url,
+            WatchStatus = NewStatus,
+            MyRating = NewRating,
+            Liked = NewLiked,
+            IsFavorite = NewFavorite,
+            Notes = string.IsNullOrWhiteSpace(NewNotes) ? null : NewNotes,
             DateAdded = DateTime.Now
         };
 
         await AnimeService.AddAsync(entry);
         Toast.Show($"{entry.Title} added to vault!", ToastType.Success);
-
-        AddingIds.Remove(result.MalId);
-        SearchResults.Remove(result);
+        AddedIds.Add(SelectedResult.MalId);
+        IsAdding = false;
+        CloseAddPanel();
     }
 
     private string Truncate(string? s, int max) =>
