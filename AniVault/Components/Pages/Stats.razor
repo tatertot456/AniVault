@@ -78,10 +78,10 @@
                 <div class="breakdown-row">
                     <div class="breakdown-header">
                         <span class="breakdown-label">@status</span>
-                        <span class="breakdown-count">@count</span>
+                        <span class="breakdown-count @GetStatusClass(status)">@count</span>
                     </div>
                     <div class="breakdown-bar-bg">
-                        <div class="breakdown-bar-fill" style="width:@(pct.ToString("F1"))%"></div>
+                        <div class="breakdown-bar-fill @GetStatusClass(status)" style="width:@(pct.ToString("F1"))%"></div>
                     </div>
                 </div>
             }
@@ -190,4 +190,17 @@
         NavigationManager.NavigateTo($"/anime/{id}");
 
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+    private string GetStatusClass(string? status) => status switch
+    {
+        "Watched" => "status-watched",
+        "Watching" => "status-watching",
+        "Read" => "status-read",
+        "Reading" => "status-reading",
+        "Plan to Watch" => "status-plan",
+        "Plan to Read" => "status-plan",
+        "Dropped" => "status-dropped",
+        "On-Hold" => "status-onhold",
+        _ => ""
+    };
 }

@@ -1346,3 +1346,60 @@ a {
         width: 120px;
     }
 }
+
+/* --- Colored breakdown bars --- */
+.breakdown-count.status-watched {
+    color: #2ec4b6;
+}
+
+.breakdown-bar-fill.status-watched {
+    background: #2ec4b6;
+}
+
+.breakdown-count.status-watching {
+    color: var(--accent-gold);
+}
+
+.breakdown-bar-fill.status-watching {
+    background: var(--accent-gold);
+}
+
+.breakdown-count.status-read {
+    color: #60a5fa;
+}
+
+.breakdown-bar-fill.status-read {
+    background: #60a5fa;
+}
+
+.breakdown-count.status-reading {
+    color: #a78bfa;
+}
+
+.breakdown-bar-fill.status-reading {
+    background: #a78bfa;
+}
+
+.breakdown-count.status-plan {
+    color: #fbbf24;
+}
+
+.breakdown-bar-fill.status-plan {
+    background: #fbbf24;
+}
+
+.breakdown-count.status-dropped {
+    color: #e63946;
+}
+
+.breakdown-bar-fill.status-dropped {
+    background: #e63946;
+}
+
+.breakdown-count.status-onhold {
+    color: #fb923c;
+}
+
+.breakdown-bar-fill.status-onhold {
+    background: #fb923c;
+}
