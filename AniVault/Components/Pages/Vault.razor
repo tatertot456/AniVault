@@ -78,6 +78,24 @@
         </button>
     </div>
 
+    <!-- Genre Filter -->
+    @if (AvailableGenres.Any())
+    {
+        <div class="genre-filter-row">
+            <button class="genre-filter-chip @(ActiveGenre == null ? "genre-filter-active" : "")"
+                    @onclick="() => SetGenre(null)">
+                All Genres
+            </button>
+            @foreach (var genre in AvailableGenres)
+            {
+                <button class="genre-filter-chip @(ActiveGenre == genre ? "genre-filter-active" : "")"
+                        @onclick="() => SetGenre(genre)">
+                    @genre
+                </button>
+            }
+        </div>
+    }
+
     @if (IsLoading)
     {
         <div class="spinner-container">
@@ -304,12 +322,25 @@
     private string SearchQuery = string.Empty;
     private string SortOrder = "recent";
     private string MediaFilter = "All";
+    private string? ActiveGenre;
+    private List<string> AvailableGenres = new();
     private bool IsLoading = true;
     private AnimeEntry? SpotlightEntry;
 
     protected override async Task OnInitializedAsync()
     {
         AllAnime = await AnimeService.GetAllAsync();
+
+        AvailableGenres = AllAnime
+            .Where(a => !string.IsNullOrWhiteSpace(a.Genre))
+            .SelectMany(a => a.Genre!.Split(',', StringSplitOptions.TrimEntries))
+            .Where(g => !string.IsNullOrWhiteSpace(g))
+            .GroupBy(g => g)
+            .OrderByDescending(g => g.Count())
+            .Select(g => g.Key)
+            .Take(20)
+            .ToList();
+
         ApplyFilter();
         IsLoading = false;
     }
@@ -323,6 +354,12 @@
     private void SetMediaFilter(string filter)
     {
         MediaFilter = filter;
+        ApplyFilter();
+    }
+
+    private void SetGenre(string? genre)
+    {
+        ActiveGenre = genre;
         ApplyFilter();
     }
 
@@ -349,6 +386,10 @@
         // Search
         if (!string.IsNullOrWhiteSpace(SearchQuery))
             query = query.Where(a => a.Title.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+        if (ActiveGenre != null)
+            query = query.Where(a => a.Genre != null &&
+                a.Genre.Split(',', StringSplitOptions.TrimEntries)
+                       .Contains(ActiveGenre, StringComparer.OrdinalIgnoreCase));
 
         // Sort
         query = SortOrder switch

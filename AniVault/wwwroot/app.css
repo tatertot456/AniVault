@@ -2008,3 +2008,35 @@ a {
     flex-shrink: 0;
     letter-spacing: 0.03em;
 }
+
+/* --- Genre Filter Row --- */
+.genre-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.genre-filter-chip {
+    padding: 0.3rem 0.85rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+    .genre-filter-chip:hover {
+        border-color: var(--accent-gold);
+        color: var(--accent-gold);
+    }
+
+.genre-filter-active {
+    background: rgba(245, 197, 24, 0.12);
+    border-color: rgba(245, 197, 24, 0.4);
+    color: var(--accent-gold);
+    font-weight: 600;
+}
