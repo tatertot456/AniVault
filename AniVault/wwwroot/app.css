@@ -1619,3 +1619,53 @@ a {
 .chip-active .chip-count {
     background: rgba(0, 0, 0, 0.2);
 }
+
+/* --- Card Hover Info --- */
+.anime-card-hover-info {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.65) 100%);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.6rem;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: 3;
+}
+
+.anime-card:hover .anime-card-hover-info {
+    opacity: 1;
+}
+
+.anime-card-synopsis {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: rgba(240, 240, 240, 0.85);
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-style: italic;
+}
+
+.anime-card-liked {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    align-self: flex-start;
+}
+
+    .anime-card-liked.liked-yes {
+        color: #f472b6;
+        background: rgba(244, 114, 182, 0.12);
+        border: 1px solid rgba(244, 114, 182, 0.3);
+    }
+
+    .anime-card-liked.liked-no {
+        color: #e07060;
+        background: rgba(224, 112, 96, 0.12);
+        border: 1px solid rgba(224, 112, 96, 0.3);
+    }

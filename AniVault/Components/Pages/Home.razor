@@ -29,7 +29,56 @@
     </div>
 </section>
 
-<!-- Recent Additions -->
+<!-- Currently Watching/Reading -->
+@if (InProgress.Any())
+{
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Currently Watching</h2>
+            <a href="/vault" class="view-all-link">View All →</a>
+        </div>
+        <div class="anime-grid">
+            @foreach (var entry in InProgress)
+            {
+                <div class="anime-card" @onclick="() => GoToDetail(entry.Id)">
+                    @if (!string.IsNullOrWhiteSpace(entry.CoverImageUrl))
+                    {
+                        <img class="anime-card-poster"
+                             src="@entry.CoverImageUrl"
+                             alt="@entry.Title poster"
+                             loading="lazy" />
+                    }
+                    else
+                    {
+                        <div class="anime-card-no-art">NO ART</div>
+                    }
+                    <div class="anime-card-overlay">
+                        <p class="anime-card-title">@entry.Title</p>
+                        <span class="status-pill @GetStatusClass(entry.WatchStatus)">@entry.WatchStatus</span>
+                    </div>
+                    <div class="anime-card-hover-info">
+                        @if (!string.IsNullOrWhiteSpace(entry.Description))
+                        {
+                            <p class="anime-card-synopsis">@Truncate(entry.Description, 180)</p>
+                        }
+                        @if (entry.Liked.HasValue)
+                        {
+                            <span class="anime-card-liked @(entry.Liked.Value ? "liked-yes" : "liked-no")">
+                                @(entry.Liked.Value ? "♥ Liked" : "✕ Disliked")
+                            </span>
+                        }
+                    </div>
+                    @if (entry.MyRating.HasValue)
+                    {
+                        <span class="anime-card-score">@entry.MyRating.Value.ToString("F1")</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Recently Added -->
 @if (RecentAnime.Any())
 {
     <div class="section">
@@ -56,6 +105,18 @@
                         <p class="anime-card-title">@entry.Title</p>
                         <span class="status-pill @GetStatusClass(entry.WatchStatus)">@entry.WatchStatus</span>
                     </div>
+                    <div class="anime-card-hover-info">
+                        @if (!string.IsNullOrWhiteSpace(entry.Description))
+                        {
+                            <p class="anime-card-synopsis">@Truncate(entry.Description, 180)</p>
+                        }
+                        @if (entry.Liked.HasValue)
+                        {
+                            <span class="anime-card-liked @(entry.Liked.Value ? "liked-yes" : "liked-no")">
+                                @(entry.Liked.Value ? "♥ Liked" : "✕ Disliked")
+                            </span>
+                        }
+                    </div>
                     @if (entry.MyRating.HasValue)
                     {
                         <span class="anime-card-score">@entry.MyRating.Value.ToString("F1")</span>
@@ -68,6 +129,7 @@
 
 @code {
     private List<AnimeEntry> RecentAnime = new();
+    private List<AnimeEntry> InProgress = new();
     private int TotalAnime;
     private int TotalWatched;
     private int TotalFavorites;
@@ -78,21 +140,31 @@
         TotalAnime = all.Count;
         TotalWatched = all.Count(a => a.WatchStatus == "Watched" || a.WatchStatus == "Read");
         TotalFavorites = all.Count(a => a.IsFavorite);
-        RecentAnime = all.Take(6).ToList();
+        InProgress = all
+            .Where(a => a.WatchStatus == "Watching" || a.WatchStatus == "Reading")
+            .Take(6)
+            .ToList();
+        RecentAnime = all
+            .Where(a => a.WatchStatus != "Watching" && a.WatchStatus != "Reading")
+            .Take(6)
+            .ToList();
     }
+
+    private void GoToDetail(int id) => Nav.NavigateTo($"/anime/{id}");
+
+    private string Truncate(string? s, int max) =>
+        s == null ? "" : s.Length <= max ? s : s[..max].TrimEnd() + "…";
 
     private string GetStatusClass(string? status) => status switch
     {
-        "Watched"       => "status-watched",
-        "Watching"      => "status-watching",
-        "Read"          => "status-read",
-        "Reading"       => "status-reading",
+        "Watched" => "status-watched",
+        "Watching" => "status-watching",
+        "Read" => "status-read",
+        "Reading" => "status-reading",
         "Plan to Watch" => "status-plan",
-        "Plan to Read"  => "status-plan",
-        "Dropped"       => "status-dropped",
-        "On-Hold"       => "status-onhold",
-        _               => ""
+        "Plan to Read" => "status-plan",
+        "Dropped" => "status-dropped",
+        "On-Hold" => "status-onhold",
+        _ => ""
     };
-
-    private void GoToDetail(int id) => Nav.NavigateTo($"/anime/{id}");
 }

@@ -7,7 +7,17 @@
 
 <div class="section">
     <div class="section-header">
-        <h1 class="section-title">Favorites</h1>
+        <h1 class="section-title"><span style="color:var(--accent-gold)">★</span> Favorites</h1>
+    </div>
+
+    <div class="vault-controls">
+        <select class="dev-select" @bind="SortOrder" @bind:after="ApplySort">
+            <option value="recent">Recently Added</option>
+            <option value="alpha">A → Z</option>
+            <option value="rating_desc">My Rating ↓</option>
+            <option value="rating_asc">My Rating ↑</option>
+            <option value="mal_desc">MAL Score ↓</option>
+        </select>
     </div>
 
     @if (IsLoading)
@@ -25,7 +35,7 @@
     else
     {
         <div class="anime-grid">
-            @foreach (var entry in FavoritesList)
+            @foreach (var entry in SortedFavorites)
             {
                 <div class="anime-card" @onclick="() => OpenSpotlight(entry)">
                     @if (!string.IsNullOrWhiteSpace(entry.CoverImageUrl))
@@ -39,10 +49,25 @@
                     {
                         <div class="anime-card-no-art">NO ART</div>
                     }
+
                     <div class="anime-card-overlay">
                         <p class="anime-card-title">@entry.Title</p>
                         <span class="status-pill @GetStatusClass(entry.WatchStatus)">@entry.WatchStatus</span>
                     </div>
+
+                    <div class="anime-card-hover-info">
+                        @if (!string.IsNullOrWhiteSpace(entry.Description))
+                        {
+                            <p class="anime-card-synopsis">@Truncate(entry.Description, 180)</p>
+                        }
+                        @if (entry.Liked.HasValue)
+                        {
+                            <span class="anime-card-liked @(entry.Liked.Value ? "liked-yes" : "liked-no")">
+                                @(entry.Liked.Value ? "♥ Liked" : "✕ Disliked")
+                            </span>
+                        }
+                    </div>
+
                     @if (entry.MyRating.HasValue)
                     {
                         <span class="anime-card-score">@entry.MyRating.Value.ToString("F1")</span>
@@ -144,13 +169,28 @@
 
 @code {
     private List<AnimeEntry> FavoritesList = new();
+    private List<AnimeEntry> SortedFavorites = new();
     private bool IsLoading = true;
     private AnimeEntry? SpotlightEntry;
+    private string SortOrder = "recent";
 
     protected override async Task OnInitializedAsync()
     {
         FavoritesList = await AnimeService.GetFavoritesAsync();
+        ApplySort();
         IsLoading = false;
+    }
+
+    private void ApplySort()
+    {
+        SortedFavorites = SortOrder switch
+        {
+            "alpha" => FavoritesList.OrderBy(a => a.Title).ToList(),
+            "rating_desc" => FavoritesList.OrderByDescending(a => a.MyRating ?? -1).ToList(),
+            "rating_asc" => FavoritesList.OrderBy(a => a.MyRating ?? 999).ToList(),
+            "mal_desc" => FavoritesList.OrderByDescending(a => a.AverageRating ?? -1).ToList(),
+            _ => FavoritesList.OrderByDescending(a => a.DateAdded).ToList()
+        };
     }
 
     private void OpenSpotlight(AnimeEntry entry) => SpotlightEntry = entry;
