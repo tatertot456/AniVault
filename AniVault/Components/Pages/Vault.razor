@@ -28,6 +28,9 @@
             <option value="rating_asc">My Rating ↑</option>
             <option value="mal_desc">MAL Score ↓</option>
         </select>
+        <button class="btn btn-outline" @onclick="OpenRandomPicker">
+            🎲 Random Pick
+        </button>
     </div>
 
     <!-- Filter Chips with counts -->
@@ -207,6 +210,79 @@
     </div>
 }
 
+<!-- Random Picker Modal -->
+@if (ShowRandomPicker)
+{
+    <div class="spotlight-overlay" @onclick="CloseRandomPicker">
+        <div class="random-picker-panel" @onclick:stopPropagation="true">
+            <button class="spotlight-close" @onclick="CloseRandomPicker">✕</button>
+
+            @if (RandomEntry == null)
+            {
+                <div class="random-picker-empty">
+                    <p class="random-picker-title">No anime in your Plan to Watch or Plan to Read list!</p>
+                    <p class="random-picker-sub">Add some from the Dev Menu first.</p>
+                </div>
+            }
+            else
+            {
+                <div class="random-picker-body">
+                    @if (!string.IsNullOrWhiteSpace(RandomEntry.CoverImageUrl))
+                    {
+                        <div class="random-picker-bg"
+                             style="background-image:url('@RandomEntry.CoverImageUrl')"></div>
+                    }
+                    <div class="random-picker-content">
+                        <div class="random-picker-inner">
+                            @if (!string.IsNullOrWhiteSpace(RandomEntry.CoverImageUrl))
+                            {
+                                <img class="random-picker-poster"
+                                     src="@RandomEntry.CoverImageUrl"
+                                     alt="@RandomEntry.Title" />
+                            }
+                            <div class="random-picker-details">
+                                <p class="random-picker-eyebrow">🎲 Tonight you should watch...</p>
+                                <h2 class="random-picker-title">@RandomEntry.Title</h2>
+                                <div class="random-picker-meta">
+                                    @if (RandomEntry.EpisodeCount.HasValue)
+                                    {
+                                        <span class="detail-badge">@RandomEntry.EpisodeCount eps</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(RandomEntry.Genre))
+                                    {
+                                        @foreach (var g in RandomEntry.Genre.Split(',', StringSplitOptions.TrimEntries).Take(3))
+                                        {
+                                            <span class="genre-tag">@g</span>
+                                        }
+                                    }
+                                    @if (RandomEntry.AverageRating.HasValue)
+                                    {
+                                        <span class="detail-badge">⭐ @RandomEntry.AverageRating.Value.ToString("F1")</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(RandomEntry.Description))
+                                {
+                                    <p class="random-picker-synopsis">@Truncate(RandomEntry.Description, 220)</p>
+                                }
+                                <div class="random-picker-actions">
+                                    <button class="btn btn-gold" @onclick="() => GoToDetail(RandomEntry.Id)">
+                                        View Entry →
+                                    </button>
+                                    <button class="btn btn-outline" @onclick="PickRandom">
+                                        🎲 Pick Again
+                                    </button>
+                                    <button class="btn btn-back" @onclick="CloseRandomPicker">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
 @code {
     private List<AnimeEntry> AllAnime = new();
     private List<AnimeEntry> FilteredAnime = new();
@@ -281,4 +357,33 @@
         "On-Hold" => "status-onhold",
         _ => ""
     };
+
+    private bool ShowRandomPicker = false;
+    private AnimeEntry? RandomEntry;
+    private Random Rng = new();
+
+    private void OpenRandomPicker()
+    {
+        ShowRandomPicker = true;
+        PickRandom();
+        StateHasChanged();
+    }
+
+    private void CloseRandomPicker()
+    {
+        ShowRandomPicker = false;
+        RandomEntry = null;
+        StateHasChanged();
+    }
+
+    private void PickRandom()
+    {
+        var pool = AllAnime
+            .Where(a => a.WatchStatus == "Plan to Watch" || a.WatchStatus == "Plan to Read")
+            .ToList();
+
+        RandomEntry = pool.Any()
+            ? pool[Rng.Next(pool.Count)]
+            : null;
+    }
 }

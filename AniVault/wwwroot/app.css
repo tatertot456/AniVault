@@ -1672,3 +1672,112 @@ a {
         background: rgba(224, 112, 96, 0.12);
         border: 1px solid rgba(224, 112, 96, 0.3);
     }
+
+/* --- Random Picker Modal --- */
+.random-picker-panel {
+    position: relative;
+    width: 100%;
+    max-width: 750px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--accent-gold);
+    animation: slideIn 0.25s ease;
+}
+
+.random-picker-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(20px) brightness(0.25) saturate(1.3);
+    transform: scale(1.1);
+    z-index: 0;
+}
+
+.random-picker-body {
+    position: relative;
+    z-index: 2;
+    min-height: 300px;
+}
+
+.random-picker-content {
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    z-index: 3;
+}
+
+.random-picker-eyebrow {
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-gold);
+    font-weight: 600;
+}
+
+.random-picker-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    letter-spacing: 0.06em;
+    color: var(--text-primary);
+    line-height: 1.1;
+}
+
+.random-picker-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.random-picker-synopsis {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-dim);
+}
+
+.random-picker-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+    align-items: center;
+}
+
+.random-picker-empty {
+    padding: 3rem 2rem;
+    text-align: center;
+    background: var(--bg-card);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.random-picker-sub {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.random-picker-inner {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.random-picker-poster {
+    width: 140px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+}
+
+.random-picker-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
