@@ -38,7 +38,7 @@
         <div class="anime-grid">
             @foreach (var entry in FilteredAnime)
             {
-                <div class="anime-card" @onclick="() => GoToDetail(entry.Id)">
+                <div class="anime-card" @onclick="() => OpenSpotlight(entry)">
                     @if (!string.IsNullOrWhiteSpace(entry.CoverImageUrl))
                     {
                         <img class="anime-card-poster"
@@ -50,17 +50,14 @@
                     {
                         <div class="anime-card-no-art">NO ART</div>
                     }
-
                     <div class="anime-card-overlay">
                         <p class="anime-card-title">@entry.Title</p>
                         <span class="status-pill @GetStatusClass(entry.WatchStatus)">@entry.WatchStatus</span>
                     </div>
-
                     @if (entry.MyRating.HasValue)
                     {
                         <span class="anime-card-score">@entry.MyRating.Value.ToString("F1")</span>
                     }
-
                     <button class="card-fav-btn @(entry.IsFavorite ? "fav-active" : "")"
                             @onclick:stopPropagation="true"
                             @onclick="() => ToggleFavorite(entry)">
@@ -72,11 +69,112 @@
     }
 </div>
 
+<!-- Spotlight Modal -->
+@if (SpotlightEntry != null)
+{
+    <div class="spotlight-overlay" @onclick="CloseSpotlight">
+        <div class="spotlight-panel" @onclick:stopPropagation="true">
+
+            <!-- Blurred backdrop -->
+            @if (!string.IsNullOrWhiteSpace(SpotlightEntry.CoverImageUrl))
+            {
+                <div class="spotlight-bg"
+                     style="background-image:url('@SpotlightEntry.CoverImageUrl')"></div>
+            }
+
+            <!-- Close -->
+            <button class="spotlight-close" @onclick="CloseSpotlight">✕</button>
+
+            <div class="spotlight-body">
+                <!-- Poster -->
+                <div class="spotlight-poster-wrap">
+                    @if (!string.IsNullOrWhiteSpace(SpotlightEntry.CoverImageUrl))
+                    {
+                        <img class="spotlight-poster"
+                             src="@SpotlightEntry.CoverImageUrl"
+                             alt="@SpotlightEntry.Title" />
+                    }
+                </div>
+
+                <!-- Info -->
+                <div class="spotlight-info">
+                    <span class="status-pill @GetStatusClass(SpotlightEntry.WatchStatus)" style="margin-bottom:0.75rem;display:inline-block;">
+                        @SpotlightEntry.WatchStatus
+                    </span>
+                    <h2 class="spotlight-title">@SpotlightEntry.Title</h2>
+
+                    <!-- Genre tags -->
+                    @if (!string.IsNullOrWhiteSpace(SpotlightEntry.Genre))
+                    {
+                        <div class="spotlight-tags">
+                            @foreach (var g in SpotlightEntry.Genre.Split(',', StringSplitOptions.TrimEntries))
+                            {
+                                <span class="genre-tag">@g</span>
+                            }
+                            @if (SpotlightEntry.Liked.HasValue)
+                            {
+                                <span class="genre-tag" style="@(SpotlightEntry.Liked.Value ? "color:#f472b6;border-color:rgba(244,114,182,0.3)" : "color:#e07060;border-color:rgba(224,112,96,0.3)")">
+                                    @(SpotlightEntry.Liked.Value ? "♥ Liked" : "✕ Disliked")
+                                </span>
+                            }
+                            @if (SpotlightEntry.IsFavorite)
+                            {
+                                <span class="genre-tag" style="color:var(--accent-gold);border-color:rgba(245,197,24,0.3)">★ Favorite</span>
+                            }
+                        </div>
+                    }
+
+                    <!-- Synopsis -->
+                    @if (!string.IsNullOrWhiteSpace(SpotlightEntry.Description))
+                    {
+                        <p class="spotlight-synopsis">@Truncate(SpotlightEntry.Description, 280)</p>
+                    }
+
+                    <!-- Stats row -->
+                    <div class="spotlight-stats">
+                        <div class="spotlight-stat">
+                            <span class="spotlight-stat-label">MAL Score</span>
+                            <span class="spotlight-stat-value">@(SpotlightEntry.AverageRating?.ToString("F1") ?? "—")</span>
+                        </div>
+                        <div class="spotlight-stat">
+                            <span class="spotlight-stat-label">My Rating</span>
+                            <span class="spotlight-stat-value" style="color:var(--accent-gold)">@(SpotlightEntry.MyRating?.ToString("F1") ?? "—")</span>
+                        </div>
+                        <div class="spotlight-stat">
+                            <span class="spotlight-stat-label">Episodes</span>
+                            <span class="spotlight-stat-value">@(SpotlightEntry.EpisodeCount?.ToString() ?? "—")</span>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    @if (!string.IsNullOrWhiteSpace(SpotlightEntry.Notes))
+                    {
+                        <div class="spotlight-notes">@SpotlightEntry.Notes</div>
+                    }
+
+                    <!-- Actions -->
+                    <div class="spotlight-actions">
+                        <button class="btn btn-gold" @onclick="() => GoToDetail(SpotlightEntry.Id)">
+                            Full Entry →
+                        </button>
+                        @if (!string.IsNullOrWhiteSpace(SpotlightEntry.TrailerUrl))
+                        {
+                            <a class="btn btn-outline" href="@SpotlightEntry.TrailerUrl" target="_blank">▶ Trailer</a>
+                        }
+                        <button class="btn btn-back" @onclick="CloseSpotlight">✕ Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<AnimeEntry> AllAnime = new();
     private List<AnimeEntry> FilteredAnime = new();
     private string ActiveFilter = "All";
     private bool IsLoading = true;
+    private AnimeEntry? SpotlightEntry;
 
     protected override async Task OnInitializedAsync()
     {
@@ -98,13 +196,22 @@
             : AllAnime.Where(a => a.WatchStatus == ActiveFilter).ToList();
     }
 
-    private void GoToDetail(int id) => Nav.NavigateTo($"/anime/{id}");
+    private void OpenSpotlight(AnimeEntry entry) => SpotlightEntry = entry;
+    private void CloseSpotlight() => SpotlightEntry = null;
+    private void GoToDetail(int id)
+    {
+        CloseSpotlight();
+        Nav.NavigateTo($"/anime/{id}");
+    }
 
     private async Task ToggleFavorite(AnimeEntry entry)
     {
         await AnimeService.ToggleFavoriteAsync(entry.Id);
         entry.IsFavorite = !entry.IsFavorite;
     }
+
+    private string Truncate(string? s, int max) =>
+        s == null ? "" : s.Length <= max ? s : s[..max].TrimEnd() + "…";
 
     private string GetStatusClass(string? status) => status switch
     {
