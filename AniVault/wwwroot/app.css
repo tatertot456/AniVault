@@ -2040,3 +2040,152 @@ a {
     color: var(--accent-gold);
     font-weight: 600;
 }
+
+/* --- Navbar Global Search --- */
+.nav-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.35rem 0.75rem;
+    gap: 0.5rem;
+    width: 220px;
+    transition: all var(--transition);
+}
+
+.nav-search-active {
+    border-color: var(--accent-gold);
+    width: 280px;
+}
+
+.nav-search-icon {
+    color: var(--text-muted);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.nav-search-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    width: 100%;
+}
+
+    .nav-search-input::placeholder {
+        color: var(--text-muted);
+    }
+
+.nav-search-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    min-width: 320px;
+}
+
+.nav-search-result {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    cursor: pointer;
+    transition: background var(--transition);
+    border-bottom: 1px solid var(--border);
+}
+
+    .nav-search-result:last-child {
+        border-bottom: none;
+    }
+
+    .nav-search-result:hover {
+        background: var(--bg-card-hover);
+    }
+
+.nav-search-poster {
+    width: 32px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.nav-search-poster-empty {
+    background: var(--bg-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.nav-search-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.nav-search-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-search-rating {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--accent-gold);
+    flex-shrink: 0;
+}
+
+.nav-search-more {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+    border-top: 1px solid var(--border);
+    background: var(--bg-base);
+}
+
+.nav-search-empty {
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* --- Add Anime Page --- */
+.add-anime-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 2rem;
+    gap: 0.5rem;
+}
+
+.add-anime-search {
+    width: 100%;
+    max-width: 600px;
+    margin-top: 1rem;
+}
+
+.add-anime-added {
+    opacity: 0.5;
+    cursor: default;
+}

@@ -1,73 +1,80 @@
-﻿@page "/dev"
+﻿@page "/add-anime"
 @inject JikanService JikanService
 @inject AnimeService AnimeService
 @inject ToastService Toast
 @rendermode InteractiveServer
 
-<PageTitle>Dev Menu — AniVault</PageTitle>
+<PageTitle>Add Anime — AniVault</PageTitle>
 
 <div class="section">
-    <div class="section-header">
-        <h1 class="section-title">⌨ Dev Menu</h1>
+    <div class="add-anime-header">
+        <h1 class="section-title">＋ Add Anime</h1>
         <p class="section-subtitle">Search for anime and add them to your vault.</p>
+
+        <!-- Centered Search Bar -->
+        <div class="add-anime-search">
+            <div class="dev-search-row">
+                <input class="dev-input"
+                       type="text"
+                       placeholder="Search anime title..."
+                       @bind="SearchQuery"
+                       @bind:event="oninput"
+                       @onkeydown="HandleKeyDown" />
+                <button class="btn btn-gold" @onclick="Search" disabled="@IsSearching">
+                    @(IsSearching ? "Searching..." : "Search")
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- Search Bar -->
-    <div class="dev-search-row">
-        <input class="dev-input"
-               type="text"
-               placeholder="Search anime title..."
-               @bind="SearchQuery"
-               @bind:event="oninput"
-               @onkeydown="HandleKeyDown" />
-        <button class="btn btn-gold" @onclick="Search" disabled="@IsSearching">
-            @(IsSearching ? "Searching..." : "Search")
-        </button>
-    </div>
-
-    <!-- Search Results -->
+    <!-- Search Results Grid -->
     @if (SearchResults.Any())
     {
-        <div class="dev-results">
+        <div class="anime-grid">
             @foreach (var result in SearchResults)
             {
-                <div class="dev-result-card @(AddedIds.Contains(result.MalId) ? "dev-result-added" : "")"
+                <div class="anime-card @(AddedIds.Contains(result.MalId) ? "add-anime-added" : "")"
                      @onclick="() => OpenAddPanel(result)">
                     @if (!string.IsNullOrWhiteSpace(result.Images?.Jpg?.LargeImageUrl))
                     {
-                        <img class="dev-result-poster"
+                        <img class="anime-card-poster"
                              src="@result.Images.Jpg.LargeImageUrl"
                              alt="@result.Title poster" />
                     }
-                    <div class="dev-result-info">
-                        <h3 class="dev-result-title">@(result.TitleEnglish ?? result.Title)</h3>
-                        @if (!string.IsNullOrWhiteSpace(result.Synopsis))
+                    else
+                    {
+                        <div class="anime-card-no-art">NO ART</div>
+                    }
+
+                    <div class="anime-card-overlay">
+                        <p class="anime-card-title">@(result.TitleEnglish ?? result.Title)</p>
+                        @if (result.Score.HasValue)
                         {
-                            <p class="dev-result-synopsis">@Truncate(result.Synopsis, 160)</p>
-                        }
-                        <div class="dev-result-meta">
-                            @if (result.Score.HasValue)
-                            {
-                                <span class="detail-badge">⭐ @result.Score.Value.ToString("F1")</span>
-                            }
-                            @if (result.Episodes.HasValue)
-                            {
-                                <span class="detail-badge">@result.Episodes eps</span>
-                            }
-                            @if (result.Genres?.Any() == true)
-                            {
-                                <span class="detail-badge">@string.Join(", ", result.Genres.Select(g => g.Name))</span>
-                            }
-                        </div>
-                        @if (AddedIds.Contains(result.MalId))
-                        {
-                            <span class="dev-added-badge">✓ Added to Vault</span>
-                        }
-                        else
-                        {
-                            <span class="dev-click-hint">Click to add →</span>
+                            <span class="anime-card-status">⭐ @result.Score.Value.ToString("F1")</span>
                         }
                     </div>
+
+                    <div class="anime-card-hover-info">
+                        @if (!string.IsNullOrWhiteSpace(result.Synopsis))
+                        {
+                            <p class="anime-card-synopsis">@Truncate(result.Synopsis, 180)</p>
+                        }
+                        @if (result.Genres?.Any() == true)
+                        {
+                            <span class="anime-card-liked liked-yes">
+                                @string.Join(", ", result.Genres.Take(2).Select(g => g.Name))
+                            </span>
+                        }
+                    </div>
+
+                    @if (AddedIds.Contains(result.MalId))
+                    {
+                        <span class="anime-card-score" style="background:rgba(46,196,182,0.9);color:white">✓</span>
+                    }
+                    else if (result.Episodes.HasValue)
+                    {
+                        <span class="anime-card-score">@result.Episodes ep</span>
+                    }
                 </div>
             }
         </div>
@@ -85,18 +92,13 @@
 {
     <div class="spotlight-overlay" @onclick="CloseAddPanel">
         <div class="spotlight-panel dev-add-panel" @onclick:stopPropagation="true">
-
-            <!-- Blurred backdrop -->
             @if (!string.IsNullOrWhiteSpace(SelectedResult.Images?.Jpg?.LargeImageUrl))
             {
                 <div class="spotlight-bg"
                      style="background-image:url('@SelectedResult.Images.Jpg.LargeImageUrl')"></div>
             }
-
             <button class="spotlight-close" @onclick="CloseAddPanel">✕</button>
-
             <div class="spotlight-body">
-                <!-- Poster -->
                 <div class="spotlight-poster-wrap">
                     @if (!string.IsNullOrWhiteSpace(SelectedResult.Images?.Jpg?.LargeImageUrl))
                     {
@@ -105,11 +107,8 @@
                              alt="@SelectedResult.Title" />
                     }
                 </div>
-
-                <!-- Form -->
                 <div class="spotlight-info">
                     <h2 class="spotlight-title">@(SelectedResult.TitleEnglish ?? SelectedResult.Title)</h2>
-
                     <div class="spotlight-tags" style="margin-bottom:1rem;">
                         @if (SelectedResult.Score.HasValue)
                         {
@@ -127,15 +126,11 @@
                             }
                         }
                     </div>
-
                     @if (!string.IsNullOrWhiteSpace(SelectedResult.Synopsis))
                     {
                         <p class="spotlight-synopsis">@Truncate(SelectedResult.Synopsis, 200)</p>
                     }
-
-                    <!-- Add Form Fields -->
                     <div class="dev-panel-form">
-
                         <div class="dev-panel-field">
                             <label class="dev-panel-label">Watch Status</label>
                             <select class="dev-select" @bind="NewStatus">
@@ -149,7 +144,6 @@
                                 <option>Dropped</option>
                             </select>
                         </div>
-
                         <div class="dev-panel-field">
                             <label class="dev-panel-label">My Rating (0–10)</label>
                             <input class="dev-input-small" type="number"
@@ -157,7 +151,6 @@
                                    placeholder="Leave blank to rate later"
                                    @bind="NewRating" />
                         </div>
-
                         <div class="dev-panel-field">
                             <label class="dev-panel-label">Did you like it?</label>
                             <div class="liked-toggle">
@@ -175,7 +168,6 @@
                                 </button>
                             </div>
                         </div>
-
                         <div class="dev-panel-field">
                             <label class="dev-panel-label">Favorite?</label>
                             <div class="liked-toggle">
@@ -189,16 +181,13 @@
                                 </button>
                             </div>
                         </div>
-
                         <div class="dev-panel-field dev-panel-field-full">
                             <label class="dev-panel-label">Notes</label>
                             <textarea class="dev-textarea" rows="3"
                                       placeholder="Initial thoughts, why you added it..."
                                       @bind="NewNotes"></textarea>
                         </div>
-
                     </div>
-
                     <div class="spotlight-actions">
                         <button class="btn btn-gold" @onclick="AddToVault" disabled="@IsAdding">
                             @(IsAdding ? "Adding..." : "+ Add to Vault")
@@ -258,7 +247,6 @@
     {
         if (SelectedResult == null) return;
         IsAdding = true;
-
         var entry = new AnimeEntry
         {
             Title = SelectedResult.TitleEnglish ?? SelectedResult.Title ?? "Unknown",
@@ -277,7 +265,6 @@
             Notes = string.IsNullOrWhiteSpace(NewNotes) ? null : NewNotes,
             DateAdded = DateTime.Now
         };
-
         await AnimeService.AddAsync(entry);
         Toast.Show($"{entry.Title} added to vault!", ToastType.Success);
         AddedIds.Add(SelectedResult.MalId);

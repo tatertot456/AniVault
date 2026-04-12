@@ -1,6 +1,5 @@
 ﻿@inherits LayoutComponentBase
 @inject ToastService Toast
-@inject NavigationManager Nav
 @implements IDisposable
 
 <div class="app-shell">
@@ -20,8 +19,11 @@
             <li><NavLink href="/activity" class="nav-link">Activity</NavLink></li>
         </ul>
 
+       <!-- Global Search -->
+       <NavSearch />
+
         <div class="navbar-right">
-            <a href="/dev" class="dev-badge">⌨ Dev Menu</a>
+            <a href="/add-anime" class="dev-badge">＋ Add Anime</a>
         </div>
     </nav>
 

@@ -1,0 +1,124 @@
+﻿@inject AnimeService AnimeService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<div class="nav-search @(SearchFocused || SearchResults.Any() ? "nav-search-active" : "")">
+    <span class="nav-search-icon">⌕</span>
+    <input class="nav-search-input"
+           type="text"
+           placeholder="Search vault..."
+           value="@_searchQuery"
+           @oninput="OnSearchInput"
+           @onfocus="OnSearchFocus"
+           @onblur="OnSearchBlur" />
+
+    @if (SearchResults.Any())
+    {
+        <div class="nav-search-dropdown">
+            @foreach (var entry in SearchResults)
+            {
+                <div class="nav-search-result" @onmousedown="() => GoToEntry(entry.Id)">
+                    @if (!string.IsNullOrWhiteSpace(entry.CoverImageUrl))
+                    {
+                        <img class="nav-search-poster"
+                             src="@entry.CoverImageUrl"
+                             alt="@entry.Title" />
+                    }
+                    else
+                    {
+                        <div class="nav-search-poster nav-search-poster-empty">?</div>
+                    }
+                    <div class="nav-search-info">
+                        <span class="nav-search-title">@entry.Title</span>
+                        <span class="status-pill @GetStatusClass(entry.WatchStatus)" style="font-size:0.6rem">
+                            @entry.WatchStatus
+                        </span>
+                    </div>
+                    @if (entry.MyRating.HasValue)
+                    {
+                        <span class="nav-search-rating">@entry.MyRating.Value.ToString("F1")</span>
+                    }
+                </div>
+            }
+            @if (TotalResults > 5)
+            {
+                <div class="nav-search-more">
+                    Showing 5 of @TotalResults results
+                </div>
+            }
+        </div>
+    }
+    else if (SearchFocused && _searchQuery.Length > 0)
+    {
+        <div class="nav-search-dropdown">
+            <div class="nav-search-empty">No results found</div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<AnimeEntry> AllAnime = new();
+    private List<AnimeEntry> SearchResults = new();
+    private string _searchQuery = string.Empty;
+    private bool SearchFocused = false;
+    private int TotalResults = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AllAnime = await AnimeService.GetAllAsync();
+    }
+
+    private void OnSearchFocus() => SearchFocused = true;
+
+    private void OnSearchBlur()
+    {
+        Task.Delay(200).ContinueWith(_ =>
+        {
+            SearchFocused = false;
+            _searchQuery = string.Empty;
+            SearchResults = new();
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        _searchQuery = e.Value?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            SearchResults = new();
+            TotalResults = 0;
+        }
+        else
+        {
+            var matches = AllAnime
+                .Where(a => a.Title.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(a => a.Title)
+                .ToList();
+            TotalResults = matches.Count;
+            SearchResults = matches.Take(5).ToList();
+        }
+    }
+
+    private void GoToEntry(int id)
+    {
+        _searchQuery = string.Empty;
+        SearchResults = new();
+        SearchFocused = false;
+        Nav.NavigateTo($"/anime/{id}");
+    }
+
+    private string GetStatusClass(string? status) => status switch
+    {
+        "Watched" => "status-watched",
+        "Watching" => "status-watching",
+        "Read" => "status-read",
+        "Reading" => "status-reading",
+        "Plan to Watch" => "status-plan",
+        "Plan to Read" => "status-plan",
+        "Dropped" => "status-dropped",
+        "On-Hold" => "status-onhold",
+        _ => ""
+    };
+}
