@@ -8,6 +8,20 @@
 <div class="section">
     <div class="section-header">
         <h1 class="section-title">The Vault</h1>
+        <div class="media-toggle">
+            <button class="media-toggle-btn @(MediaFilter == "All" ? "media-toggle-active" : "")"
+                    @onclick='() => SetMediaFilter("All")'>
+                All
+            </button>
+            <button class="media-toggle-btn @(MediaFilter == "Anime" ? "media-toggle-active" : "")"
+                    @onclick='() => SetMediaFilter("Anime")'>
+                🎬 Anime
+            </button>
+            <button class="media-toggle-btn @(MediaFilter == "Manga" ? "media-toggle-active" : "")"
+                    @onclick='() => SetMediaFilter("Manga")'>
+                📖 Manga
+            </button>
+        </div>
         <span class="vault-count">@FilteredAnime.Count entries</span>
     </div>
 
@@ -289,6 +303,7 @@
     private string ActiveFilter = "All";
     private string SearchQuery = string.Empty;
     private string SortOrder = "recent";
+    private string MediaFilter = "All";
     private bool IsLoading = true;
     private AnimeEntry? SpotlightEntry;
 
@@ -305,16 +320,37 @@
         ApplyFilter();
     }
 
+    private void SetMediaFilter(string filter)
+    {
+        MediaFilter = filter;
+        ApplyFilter();
+    }
+
     private void ApplyFilter()
     {
         var query = AllAnime.AsEnumerable();
 
+        // Media type filter
+        if (MediaFilter == "Anime")
+            query = query.Where(a => a.WatchStatus == "Watched" ||
+                                     a.WatchStatus == "Watching" ||
+                                     a.WatchStatus == "Plan to Watch" ||
+                                     a.WatchStatus == "Dropped" ||
+                                     a.WatchStatus == "On-Hold");
+        else if (MediaFilter == "Manga")
+            query = query.Where(a => a.WatchStatus == "Read" ||
+                                     a.WatchStatus == "Reading" ||
+                                     a.WatchStatus == "Plan to Read");
+
+        // Status filter
         if (ActiveFilter != "All")
             query = query.Where(a => a.WatchStatus == ActiveFilter);
 
+        // Search
         if (!string.IsNullOrWhiteSpace(SearchQuery))
             query = query.Where(a => a.Title.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
 
+        // Sort
         query = SortOrder switch
         {
             "alpha" => query.OrderBy(a => a.Title),
