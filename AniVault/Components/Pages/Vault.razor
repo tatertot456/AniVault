@@ -25,7 +25,6 @@
         <span class="vault-count">@FilteredAnime.Count entries</span>
     </div>
 
-    <!-- Search and Sort Row -->
     <div class="vault-controls">
         <div class="vault-search">
             <span class="vault-search-icon">⌕</span>
@@ -42,43 +41,39 @@
             <option value="rating_asc">My Rating ↑</option>
             <option value="mal_desc">MAL Score ↓</option>
         </select>
-        <button class="btn btn-outline" @onclick="OpenRandomPicker">
-            🎲 Random Pick
-        </button>
+        <button class="btn btn-outline" @onclick="OpenRandomPicker">🎲 Random Pick</button>
     </div>
 
-    <!-- Filter Chips with counts -->
     <div class="filter-chips">
         <button class="chip @(ActiveFilter == "All" ? "chip-active" : "")" @onclick='() => SetFilter("All")'>
             All <span class="chip-count">@AllAnime.Count</span>
         </button>
         <button class="chip @(ActiveFilter == "Watched" ? "chip-active" : "")" @onclick='() => SetFilter("Watched")'>
-            Watched <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Watched")</span>
+            Watched <span class="chip-count">@AllAnime.Count(a => a.Statuses.Any(s => s.StatusType == "Watched"))</span>
         </button>
         <button class="chip @(ActiveFilter == "Watching" ? "chip-active" : "")" @onclick='() => SetFilter("Watching")'>
-            Watching <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Watching")</span>
+            Watching <span class="chip-count">@AllAnime.Count(a => a.Statuses.Any(s => s.StatusType == "Watching"))</span>
         </button>
         <button class="chip @(ActiveFilter == "Read" ? "chip-active" : "")" @onclick='() => SetFilter("Read")'>
-            Read <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Read")</span>
+            Read <span class="chip-count">@AllAnime.Count(a => a.Statuses.Any(s => s.StatusType == "Read"))</span>
         </button>
         <button class="chip @(ActiveFilter == "Reading" ? "chip-active" : "")" @onclick='() => SetFilter("Reading")'>
-            Reading <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Reading")</span>
+            Reading <span class="chip-count">@AllAnime.Count(a => a.Statuses.Any(s => s.StatusType == "Reading"))</span>
         </button>
         <button class="chip @(ActiveFilter == "Plan to Watch" ? "chip-active" : "")" @onclick='() => SetFilter("Plan to Watch")'>
-            Plan to Watch <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Plan to Watch")</span>
+            Plan to Watch <span class="chip-count">@AllAnime.Count(a => a.Statuses.Any(s => s.StatusType == "Plan to Watch"))</span>
         </button>
         <button class="chip @(ActiveFilter == "Plan to Read" ? "chip-active" : "")" @onclick='() => SetFilter("Plan to Read")'>
-            Plan to Read <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Plan to Read")</span>
+            Plan to Read <span class="chip-count">@AllAnime.Count(a => a.Statuses.Any(s => s.StatusType == "Plan to Read"))</span>
         </button>
         <button class="chip @(ActiveFilter == "On-Hold" ? "chip-active" : "")" @onclick='() => SetFilter("On-Hold")'>
-            On-Hold <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "On-Hold")</span>
+            On-Hold <span class="chip-count">@AllAnime.Count(a => a.Statuses.Any(s => s.StatusType == "On-Hold"))</span>
         </button>
         <button class="chip @(ActiveFilter == "Dropped" ? "chip-active" : "")" @onclick='() => SetFilter("Dropped")'>
-            Dropped <span class="chip-count">@AllAnime.Count(a => a.WatchStatus == "Dropped")</span>
+            Dropped <span class="chip-count">@AllAnime.Count(a => a.Statuses.Any(s => s.StatusType == "Dropped"))</span>
         </button>
     </div>
 
-    <!-- Genre Filter -->
     @if (AvailableGenres.Any())
     {
         <div class="genre-filter-row">
@@ -98,15 +93,11 @@
 
     @if (IsLoading)
     {
-        <div class="spinner-container">
-            <div class="spinner"></div>
-        </div>
+        <div class="spinner-container"><div class="spinner"></div></div>
     }
     else if (!FilteredAnime.Any())
     {
-        <div class="empty-state">
-            <p>No anime found. Try a different search or filter!</p>
-        </div>
+        <div class="empty-state"><p>No anime found. Try a different search or filter!</p></div>
     }
     else
     {
@@ -125,12 +116,15 @@
                     {
                         <div class="anime-card-no-art">NO ART</div>
                     }
-
                     <div class="anime-card-overlay">
                         <p class="anime-card-title">@entry.Title</p>
-                        <span class="status-pill @GetStatusClass(entry.WatchStatus)">@entry.WatchStatus</span>
+                        <div class="card-status-pills">
+                            @foreach (var s in entry.Statuses)
+                            {
+                                <span class="status-pill @GetStatusClass(s.StatusType)">@s.StatusType</span>
+                            }
+                        </div>
                     </div>
-
                     <div class="anime-card-hover-info">
                         @if (!string.IsNullOrWhiteSpace(entry.Description))
                         {
@@ -143,7 +137,6 @@
                             </span>
                         }
                     </div>
-
                     @if (entry.MyRating.HasValue)
                     {
                         <span class="anime-card-score">@entry.MyRating.Value.ToString("F1")</span>
@@ -159,7 +152,6 @@
     }
 </div>
 
-<!-- Spotlight Modal -->
 @if (SpotlightEntry != null)
 {
     <div class="spotlight-overlay" @onclick="CloseSpotlight">
@@ -180,10 +172,12 @@
                     }
                 </div>
                 <div class="spotlight-info">
-                    <span class="status-pill @GetStatusClass(SpotlightEntry.WatchStatus)"
-                          style="margin-bottom:0.75rem;display:inline-block;">
-                        @SpotlightEntry.WatchStatus
-                    </span>
+                    <div class="card-status-pills" style="margin-bottom:0.75rem;">
+                        @foreach (var s in SpotlightEntry.Statuses)
+                        {
+                            <span class="status-pill @GetStatusClass(s.StatusType)">@s.StatusType</span>
+                        }
+                    </div>
                     <h2 class="spotlight-title">@SpotlightEntry.Title</h2>
                     @if (!string.IsNullOrWhiteSpace(SpotlightEntry.Genre))
                     {
@@ -227,9 +221,7 @@
                         <div class="spotlight-notes">@SpotlightEntry.Notes</div>
                     }
                     <div class="spotlight-actions">
-                        <button class="btn btn-gold" @onclick="() => GoToDetail(SpotlightEntry.Id)">
-                            Full Entry →
-                        </button>
+                        <button class="btn btn-gold" @onclick="() => GoToDetail(SpotlightEntry.Id)">Full Entry →</button>
                         @if (!string.IsNullOrWhiteSpace(SpotlightEntry.TrailerUrl))
                         {
                             <a class="btn btn-outline" href="@SpotlightEntry.TrailerUrl" target="_blank">▶ Trailer</a>
@@ -242,18 +234,16 @@
     </div>
 }
 
-<!-- Random Picker Modal -->
 @if (ShowRandomPicker)
 {
     <div class="spotlight-overlay" @onclick="CloseRandomPicker">
         <div class="random-picker-panel" @onclick:stopPropagation="true">
             <button class="spotlight-close" @onclick="CloseRandomPicker">✕</button>
-
             @if (RandomEntry == null)
             {
                 <div class="random-picker-empty">
                     <p class="random-picker-title">No anime in your Plan to Watch or Plan to Read list!</p>
-                    <p class="random-picker-sub">Add some from the Dev Menu first.</p>
+                    <p class="random-picker-sub">Add some first.</p>
                 </div>
             }
             else
@@ -297,15 +287,9 @@
                                     <p class="random-picker-synopsis">@Truncate(RandomEntry.Description, 220)</p>
                                 }
                                 <div class="random-picker-actions">
-                                    <button class="btn btn-gold" @onclick="() => GoToDetail(RandomEntry.Id)">
-                                        View Entry →
-                                    </button>
-                                    <button class="btn btn-outline" @onclick="PickRandom">
-                                        🎲 Pick Again
-                                    </button>
-                                    <button class="btn btn-back" @onclick="CloseRandomPicker">
-                                        Cancel
-                                    </button>
+                                    <button class="btn btn-gold" @onclick="() => GoToDetail(RandomEntry.Id)">View Entry →</button>
+                                    <button class="btn btn-outline" @onclick="PickRandom">🎲 Pick Again</button>
+                                    <button class="btn btn-back" @onclick="CloseRandomPicker">Cancel</button>
                                 </div>
                             </div>
                         </div>
@@ -315,6 +299,7 @@
         </div>
     </div>
 }
+
 @code {
     private List<AnimeEntry> AllAnime = new();
     private List<AnimeEntry> FilteredAnime = new();
@@ -330,7 +315,6 @@
     protected override async Task OnInitializedAsync()
     {
         AllAnime = await AnimeService.GetAllAsync();
-
         AvailableGenres = AllAnime
             .Where(a => !string.IsNullOrWhiteSpace(a.Genre))
             .SelectMany(a => a.Genre!.Split(',', StringSplitOptions.TrimEntries))
@@ -340,58 +324,39 @@
             .Select(g => g.Key)
             .Take(20)
             .ToList();
-
         ApplyFilter();
         IsLoading = false;
     }
 
-    private void SetFilter(string filter)
-    {
-        ActiveFilter = filter;
-        ApplyFilter();
-    }
-
-    private void SetMediaFilter(string filter)
-    {
-        MediaFilter = filter;
-        ApplyFilter();
-    }
-
-    private void SetGenre(string? genre)
-    {
-        ActiveGenre = genre;
-        ApplyFilter();
-    }
+    private void SetFilter(string filter) { ActiveFilter = filter; ApplyFilter(); }
+    private void SetMediaFilter(string filter) { MediaFilter = filter; ApplyFilter(); }
+    private void SetGenre(string? genre) { ActiveGenre = genre; ApplyFilter(); }
 
     private void ApplyFilter()
     {
         var query = AllAnime.AsEnumerable();
 
-        // Media type filter
         if (MediaFilter == "Anime")
-            query = query.Where(a => a.WatchStatus == "Watched" ||
-                                     a.WatchStatus == "Watching" ||
-                                     a.WatchStatus == "Plan to Watch" ||
-                                     a.WatchStatus == "Dropped" ||
-                                     a.WatchStatus == "On-Hold");
+            query = query.Where(a => a.Statuses.Any(s =>
+                s.StatusType == "Watched" || s.StatusType == "Watching" ||
+                s.StatusType == "Plan to Watch" || s.StatusType == "Dropped" ||
+                s.StatusType == "On-Hold"));
         else if (MediaFilter == "Manga")
-            query = query.Where(a => a.WatchStatus == "Read" ||
-                                     a.WatchStatus == "Reading" ||
-                                     a.WatchStatus == "Plan to Read");
+            query = query.Where(a => a.Statuses.Any(s =>
+                s.StatusType == "Read" || s.StatusType == "Reading" ||
+                s.StatusType == "Plan to Read"));
 
-        // Status filter
         if (ActiveFilter != "All")
-            query = query.Where(a => a.WatchStatus == ActiveFilter);
+            query = query.Where(a => a.Statuses.Any(s => s.StatusType == ActiveFilter));
 
-        // Search
         if (!string.IsNullOrWhiteSpace(SearchQuery))
             query = query.Where(a => a.Title.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+
         if (ActiveGenre != null)
             query = query.Where(a => a.Genre != null &&
                 a.Genre.Split(',', StringSplitOptions.TrimEntries)
                        .Contains(ActiveGenre, StringComparer.OrdinalIgnoreCase));
 
-        // Sort
         query = SortOrder switch
         {
             "alpha" => query.OrderBy(a => a.Title),
@@ -439,29 +404,16 @@
     private AnimeEntry? RandomEntry;
     private Random Rng = new();
 
-    private void OpenRandomPicker()
-    {
-        ShowRandomPicker = true;
-        PickRandom();
-        StateHasChanged();
-    }
-
-    private void CloseRandomPicker()
-    {
-        ShowRandomPicker = false;
-        RandomEntry = null;
-        StateHasChanged();
-    }
+    private void OpenRandomPicker() { ShowRandomPicker = true; PickRandom(); StateHasChanged(); }
+    private void CloseRandomPicker() { ShowRandomPicker = false; RandomEntry = null; StateHasChanged(); }
 
     private void PickRandom()
     {
         var pool = AllAnime
-            .Where(a => a.WatchStatus == "Plan to Watch" || a.WatchStatus == "Plan to Read")
+            .Where(a => a.Statuses.Any(s =>
+                s.StatusType == "Plan to Watch" || s.StatusType == "Plan to Read"))
             .ToList();
-
-        RandomEntry = pool.Any()
-            ? pool[Rng.Next(pool.Count)]
-            : null;
+        RandomEntry = pool.Any() ? pool[Rng.Next(pool.Count)] : null;
     }
 
     private void OnSearchInput(ChangeEventArgs e)

@@ -22,9 +22,7 @@
 
     @if (IsLoading)
     {
-        <div class="spinner-container">
-            <div class="spinner"></div>
-        </div>
+        <div class="spinner-container"><div class="spinner"></div></div>
     }
     else if (!FavoritesList.Any())
     {
@@ -49,12 +47,15 @@
                     {
                         <div class="anime-card-no-art">NO ART</div>
                     }
-
                     <div class="anime-card-overlay">
                         <p class="anime-card-title">@entry.Title</p>
-                        <span class="status-pill @GetStatusClass(entry.WatchStatus)">@entry.WatchStatus</span>
+                        <div class="card-status-pills">
+                            @foreach (var s in entry.Statuses)
+                            {
+                                <span class="status-pill @GetStatusClass(s.StatusType)">@s.StatusType</span>
+                            }
+                        </div>
                     </div>
-
                     <div class="anime-card-hover-info">
                         @if (!string.IsNullOrWhiteSpace(entry.Description))
                         {
@@ -67,7 +68,6 @@
                             </span>
                         }
                     </div>
-
                     @if (entry.MyRating.HasValue)
                     {
                         <span class="anime-card-score">@entry.MyRating.Value.ToString("F1")</span>
@@ -79,20 +79,16 @@
     }
 </div>
 
-<!-- Spotlight Modal -->
 @if (SpotlightEntry != null)
 {
     <div class="spotlight-overlay" @onclick="CloseSpotlight">
         <div class="spotlight-panel" @onclick:stopPropagation="true">
-
             @if (!string.IsNullOrWhiteSpace(SpotlightEntry.CoverImageUrl))
             {
                 <div class="spotlight-bg"
                      style="background-image:url('@SpotlightEntry.CoverImageUrl')"></div>
             }
-
             <button class="spotlight-close" @onclick="CloseSpotlight">✕</button>
-
             <div class="spotlight-body">
                 <div class="spotlight-poster-wrap">
                     @if (!string.IsNullOrWhiteSpace(SpotlightEntry.CoverImageUrl))
@@ -102,14 +98,14 @@
                              alt="@SpotlightEntry.Title" />
                     }
                 </div>
-
                 <div class="spotlight-info">
-                    <span class="status-pill @GetStatusClass(SpotlightEntry.WatchStatus)"
-                          style="margin-bottom:0.75rem;display:inline-block;">
-                        @SpotlightEntry.WatchStatus
-                    </span>
+                    <div class="card-status-pills" style="margin-bottom:0.75rem;">
+                        @foreach (var s in SpotlightEntry.Statuses)
+                        {
+                            <span class="status-pill @GetStatusClass(s.StatusType)">@s.StatusType</span>
+                        }
+                    </div>
                     <h2 class="spotlight-title">@SpotlightEntry.Title</h2>
-
                     @if (!string.IsNullOrWhiteSpace(SpotlightEntry.Genre))
                     {
                         <div class="spotlight-tags">
@@ -125,12 +121,10 @@
                             }
                         </div>
                     }
-
                     @if (!string.IsNullOrWhiteSpace(SpotlightEntry.Description))
                     {
                         <p class="spotlight-synopsis">@Truncate(SpotlightEntry.Description, 280)</p>
                     }
-
                     <div class="spotlight-stats">
                         <div class="spotlight-stat">
                             <span class="spotlight-stat-label">MAL Score</span>
@@ -145,16 +139,12 @@
                             <span class="spotlight-stat-value">@(SpotlightEntry.EpisodeCount?.ToString() ?? "—")</span>
                         </div>
                     </div>
-
                     @if (!string.IsNullOrWhiteSpace(SpotlightEntry.Notes))
                     {
                         <div class="spotlight-notes">@SpotlightEntry.Notes</div>
                     }
-
                     <div class="spotlight-actions">
-                        <button class="btn btn-gold" @onclick="() => GoToDetail(SpotlightEntry.Id)">
-                            Full Entry →
-                        </button>
+                        <button class="btn btn-gold" @onclick="() => GoToDetail(SpotlightEntry.Id)">Full Entry →</button>
                         @if (!string.IsNullOrWhiteSpace(SpotlightEntry.TrailerUrl))
                         {
                             <a class="btn btn-outline" href="@SpotlightEntry.TrailerUrl" target="_blank">▶ Trailer</a>

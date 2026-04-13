@@ -5,7 +5,6 @@
 
 <PageTitle>AniVault — Home</PageTitle>
 
-<!-- Hero Splash -->
 <section class="hero-splash">
     <div class="hero-glow"></div>
     <div class="hero-content">
@@ -29,7 +28,6 @@
     </div>
 </section>
 
-<!-- Currently Watching/Reading -->
 @if (InProgress.Any())
 {
     <div class="section">
@@ -54,7 +52,12 @@
                     }
                     <div class="anime-card-overlay">
                         <p class="anime-card-title">@entry.Title</p>
-                        <span class="status-pill @GetStatusClass(entry.WatchStatus)">@entry.WatchStatus</span>
+                        <div class="card-status-pills">
+                            @foreach (var s in entry.Statuses)
+                            {
+                                <span class="status-pill @GetStatusClass(s.StatusType)">@s.StatusType</span>
+                            }
+                        </div>
                     </div>
                     <div class="anime-card-hover-info">
                         @if (!string.IsNullOrWhiteSpace(entry.Description))
@@ -78,7 +81,6 @@
     </div>
 }
 
-<!-- Recently Added -->
 @if (RecentAnime.Any())
 {
     <div class="section">
@@ -103,7 +105,12 @@
                     }
                     <div class="anime-card-overlay">
                         <p class="anime-card-title">@entry.Title</p>
-                        <span class="status-pill @GetStatusClass(entry.WatchStatus)">@entry.WatchStatus</span>
+                        <div class="card-status-pills">
+                            @foreach (var s in entry.Statuses)
+                            {
+                                <span class="status-pill @GetStatusClass(s.StatusType)">@s.StatusType</span>
+                            }
+                        </div>
                     </div>
                     <div class="anime-card-hover-info">
                         @if (!string.IsNullOrWhiteSpace(entry.Description))
@@ -138,14 +145,17 @@
     {
         var all = await AnimeService.GetAllAsync();
         TotalAnime = all.Count;
-        TotalWatched = all.Count(a => a.WatchStatus == "Watched" || a.WatchStatus == "Read");
+        TotalWatched = all.Count(a => a.Statuses.Any(s =>
+            s.StatusType == "Watched" || s.StatusType == "Read"));
         TotalFavorites = all.Count(a => a.IsFavorite);
         InProgress = all
-            .Where(a => a.WatchStatus == "Watching" || a.WatchStatus == "Reading")
+            .Where(a => a.Statuses.Any(s =>
+                s.StatusType == "Watching" || s.StatusType == "Reading"))
             .Take(6)
             .ToList();
         RecentAnime = all
-            .Where(a => a.WatchStatus != "Watching" && a.WatchStatus != "Reading")
+            .Where(a => !a.Statuses.Any(s =>
+                s.StatusType == "Watching" || s.StatusType == "Reading"))
             .Take(6)
             .ToList();
     }

@@ -1,5 +1,6 @@
 ﻿@page "/activity"
 @inject AnimeService AnimeService
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 <PageTitle>Activity — AniVault</PageTitle>
@@ -36,7 +37,7 @@
                     {
                         <div class="activity-row" @onclick="() => GoToDetail(entry.Id)">
                             <div class="activity-connector">
-                                <div class="activity-dot @GetStatusClass(entry.WatchStatus)"></div>
+                                <div class="activity-dot @(entry.Statuses.Any() ? GetStatusClass(entry.Statuses.First().StatusType) : "")"></div>
                                 <div class="activity-line"></div>
                             </div>
                             @if (!string.IsNullOrWhiteSpace(entry.CoverImageUrl))
@@ -52,7 +53,12 @@
                             <div class="activity-info">
                                 <span class="activity-title">@entry.Title</span>
                                 <div class="activity-meta">
-                                    <span class="status-pill @GetStatusClass(entry.WatchStatus)">@entry.WatchStatus</span>
+                                    <div class="card-status-pills">
+                                        @foreach (var s in entry.Statuses)
+                                        {
+                                            <span class="status-pill @GetStatusClass(s.StatusType)">@s.StatusType</span>
+                                        }
+                                    </div>
                                     @if (entry.MyRating.HasValue)
                                     {
                                         <span class="activity-rating">⭐ @entry.MyRating.Value.ToString("F1")</span>
@@ -106,7 +112,6 @@
     {
         var today = DateOnly.FromDateTime(DateTime.Now);
         var yesterday = today.AddDays(-1);
-
         if (date == today) return "Today";
         if (date == yesterday) return "Yesterday";
         if (date >= today.AddDays(-7)) return date.ToString("dddd");
@@ -128,6 +133,4 @@
         "On-Hold" => "status-onhold",
         _ => ""
     };
-
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 }

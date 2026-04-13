@@ -30,9 +30,14 @@
                     }
                     <div class="nav-search-info">
                         <span class="nav-search-title">@entry.Title</span>
-                        <span class="status-pill @GetStatusClass(entry.WatchStatus)" style="font-size:0.6rem">
-                            @entry.WatchStatus
-                        </span>
+                        <div class="card-status-pills">
+                            @foreach (var s in entry.Statuses)
+                            {
+                                <span class="status-pill @GetStatusClass(s.StatusType)" style="font-size:0.6rem">
+                                    @s.StatusType
+                                </span>
+                            }
+                        </div>
                     </div>
                     @if (entry.MyRating.HasValue)
                     {

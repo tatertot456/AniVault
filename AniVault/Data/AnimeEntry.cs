@@ -56,11 +56,4 @@ public class AnimeEntry
     // Navigation property for statuses
     public List<AnimeStatus> Statuses { get; set; } = new();
 
-    // Compatibility helper — returns first status as a string so existing UI still works
-    // This will be replaced when we build the multi-status UI
-    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
-    public string WatchStatus =>
-        Statuses != null && Statuses.Any()
-            ? string.Join(", ", Statuses.Select(s => s.StatusType))
-            : "";
 }
