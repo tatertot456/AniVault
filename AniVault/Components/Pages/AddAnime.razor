@@ -11,7 +11,6 @@
         <h1 class="section-title">＋ Add Anime</h1>
         <p class="section-subtitle">Search for anime and add them to your vault.</p>
 
-        <!-- Centered Search Bar -->
         <div class="add-anime-search">
             <div class="dev-search-row">
                 <input class="dev-input"
@@ -27,7 +26,6 @@
         </div>
     </div>
 
-    <!-- Search Results Grid -->
     @if (SearchResults.Any())
     {
         <div class="anime-grid">
@@ -45,7 +43,6 @@
                     {
                         <div class="anime-card-no-art">NO ART</div>
                     }
-
                     <div class="anime-card-overlay">
                         <p class="anime-card-title">@(result.TitleEnglish ?? result.Title)</p>
                         @if (result.Score.HasValue)
@@ -53,7 +50,6 @@
                             <span class="anime-card-status">⭐ @result.Score.Value.ToString("F1")</span>
                         }
                     </div>
-
                     <div class="anime-card-hover-info">
                         @if (!string.IsNullOrWhiteSpace(result.Synopsis))
                         {
@@ -66,7 +62,6 @@
                             </span>
                         }
                     </div>
-
                     @if (AddedIds.Contains(result.MalId))
                     {
                         <span class="anime-card-score" style="background:rgba(46,196,182,0.9);color:white">✓</span>
@@ -87,7 +82,6 @@
     }
 </div>
 
-<!-- Add Panel Modal -->
 @if (SelectedResult != null)
 {
     <div class="spotlight-overlay" @onclick="CloseAddPanel">
@@ -131,18 +125,20 @@
                         <p class="spotlight-synopsis">@Truncate(SelectedResult.Synopsis, 200)</p>
                     }
                     <div class="dev-panel-form">
-                        <div class="dev-panel-field">
-                            <label class="dev-panel-label">Watch Status</label>
-                            <select class="dev-select" @bind="NewStatus">
-                                <option>Plan to Watch</option>
-                                <option>Watching</option>
-                                <option>Watched</option>
-                                <option>Plan to Read</option>
-                                <option>Reading</option>
-                                <option>Read</option>
-                                <option>On-Hold</option>
-                                <option>Dropped</option>
-                            </select>
+                        <div class="dev-panel-field dev-panel-field-full">
+                            <label class="dev-panel-label">Status</label>
+                            <div class="status-checkbox-grid">
+                                @foreach (var status in AllStatuses)
+                                {
+                                    var captured = status;
+                                    <label class="status-checkbox-label @(SelectedStatuses.Contains(captured) ? "status-checkbox-active" : "")">
+                                        <input type="checkbox"
+                                               checked="@SelectedStatuses.Contains(captured)"
+                                               @onchange="() => ToggleStatus(captured)" />
+                                        @captured
+                                    </label>
+                                }
+                            </div>
                         </div>
                         <div class="dev-panel-field">
                             <label class="dev-panel-label">My Rating (0–10)</label>
@@ -208,12 +204,28 @@
     private HashSet<int> AddedIds = new();
 
     private JikanAnimeResult? SelectedResult;
-    private string NewStatus = "Plan to Watch";
+    private HashSet<string> SelectedStatuses = new();
     private decimal? NewRating;
     private bool? NewLiked;
     private bool NewFavorite = false;
     private string NewNotes = string.Empty;
     private bool IsAdding = false;
+
+    private readonly List<string> AllStatuses = new()
+    {
+        "Watching", "Watched",
+        "Reading", "Read",
+        "Plan to Watch", "Plan to Read",
+        "On-Hold", "Dropped"
+    };
+
+    private void ToggleStatus(string status)
+    {
+        if (SelectedStatuses.Contains(status))
+            SelectedStatuses.Remove(status);
+        else
+            SelectedStatuses.Add(status);
+    }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
@@ -234,7 +246,7 @@
     {
         if (AddedIds.Contains(result.MalId)) return;
         SelectedResult = result;
-        NewStatus = "Plan to Watch";
+        SelectedStatuses = new HashSet<string> { "Plan to Watch" };
         NewRating = null;
         NewLiked = null;
         NewFavorite = false;
@@ -247,6 +259,7 @@
     {
         if (SelectedResult == null) return;
         IsAdding = true;
+
         var entry = new AnimeEntry
         {
             Title = SelectedResult.TitleEnglish ?? SelectedResult.Title ?? "Unknown",
@@ -258,14 +271,18 @@
                 ? string.Join(", ", SelectedResult.Genres.Select(g => g.Name))
                 : null,
             TrailerUrl = SelectedResult.Trailer?.EmbedUrl ?? SelectedResult.Trailer?.Url,
-            WatchStatus = NewStatus,
             MyRating = NewRating,
             Liked = NewLiked,
             IsFavorite = NewFavorite,
             Notes = string.IsNullOrWhiteSpace(NewNotes) ? null : NewNotes,
             DateAdded = DateTime.Now
         };
+
         await AnimeService.AddAsync(entry);
+
+        if (SelectedStatuses.Any())
+            await AnimeService.SetStatusesAsync(entry.Id, SelectedStatuses.ToList());
+
         Toast.Show($"{entry.Title} added to vault!", ToastType.Success);
         AddedIds.Add(SelectedResult.MalId);
         IsAdding = false;

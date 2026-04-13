@@ -16,6 +16,7 @@ namespace AniVault.Services
         {
             using var context = _contextFactory.CreateDbContext();
             return await context.Anime
+                .Include(a => a.Statuses)
                 .OrderByDescending(a => a.DateAdded)
                 .ToListAsync();
         }
@@ -23,13 +24,16 @@ namespace AniVault.Services
         public async Task<AnimeEntry?> GetByIdAsync(int id)
         {
             using var context = _contextFactory.CreateDbContext();
-            return await context.Anime.FindAsync(id);
+            return await context.Anime
+                .Include(a => a.Statuses)
+                .FirstOrDefaultAsync(a => a.Id == id);
         }
 
         public async Task<List<AnimeEntry>> GetFavoritesAsync()
         {
             using var context = _contextFactory.CreateDbContext();
             return await context.Anime
+                .Include(a => a.Statuses)
                 .Where(a => a.IsFavorite)
                 .OrderByDescending(a => a.DateAdded)
                 .ToListAsync();
@@ -69,6 +73,24 @@ namespace AniVault.Services
                 entry.IsFavorite = !entry.IsFavorite;
                 await context.SaveChangesAsync();
             }
+        }
+
+        public async Task SetStatusesAsync(int animeId, List<string> statusTypes)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var existing = await context.AnimeStatuses
+                .Where(s => s.AnimeId == animeId)
+                .ToListAsync();
+            context.AnimeStatuses.RemoveRange(existing);
+            foreach (var status in statusTypes)
+            {
+                context.AnimeStatuses.Add(new AnimeStatus
+                {
+                    AnimeId = animeId,
+                    StatusType = status
+                });
+            }
+            await context.SaveChangesAsync();
         }
     }
 }

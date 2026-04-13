@@ -1,31 +1,34 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace AniVault.Data
+namespace AniVault.Data;
+
+public class AnimeTrackerContext : DbContext
 {
-    public class AnimeTrackerContext : DbContext
+    public AnimeTrackerContext(DbContextOptions<AnimeTrackerContext> options) : base(options) { }
+
+    public DbSet<AnimeEntry> Anime { get; set; }
+    public DbSet<AnimeStatus> AnimeStatuses { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public AnimeTrackerContext(DbContextOptions<AnimeTrackerContext> options)
-            : base(options)
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<AnimeStatus>(entity =>
         {
-        }
+            entity.ToTable("AnimeStatus");
 
-        public DbSet<AnimeEntry> Anime { get; set; }
+            entity.HasOne(s => s.Anime)
+                  .WithMany(a => a.Statuses)
+                  .HasForeignKey(s => s.AnimeId)
+                  .OnDelete(DeleteBehavior.Cascade);
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+            entity.HasIndex(s => new { s.AnimeId, s.StatusType })
+                  .IsUnique();
+        });
+
+        modelBuilder.Entity<AnimeEntry>(entity =>
         {
-            modelBuilder.Entity<AnimeEntry>(entity =>
-            {
-                entity.ToTable("Anime", "dbo");
-
-                entity.Property(e => e.WatchStatus)
-                    .HasDefaultValue("Plan to Watch");
-
-                entity.Property(e => e.DateAdded)
-                    .HasDefaultValueSql("GETDATE()");
-
-                entity.Property(e => e.IsFavorite)
-                    .HasDefaultValue(false);
-            });
-        }
+            entity.ToTable("Anime");
+        });
     }
 }

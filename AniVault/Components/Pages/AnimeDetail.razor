@@ -25,7 +25,6 @@ else
         <button class="btn-back" @onclick="GoBack">← Back</button>
 
         <div class="detail-hero">
-            <!-- Cover Art -->
             <div class="detail-poster-wrap">
                 @if (!string.IsNullOrWhiteSpace(Entry.CoverImageUrl))
                 {
@@ -37,12 +36,17 @@ else
                 }
             </div>
 
-            <!-- Info Panel -->
             <div class="detail-info">
                 <h1 class="detail-title">@Entry.Title</h1>
 
                 <div class="detail-meta">
-                    <span class="status-pill @GetStatusClass(Entry.WatchStatus)">@Entry.WatchStatus</span>
+                    @if (Entry.Statuses.Any())
+                    {
+                        @foreach (var s in Entry.Statuses)
+                        {
+                            <span class="status-pill @GetStatusClass(s.StatusType)">@s.StatusType</span>
+                        }
+                    }
                     @if (Entry.EpisodeCount.HasValue)
                     {
                         <span class="detail-badge">@Entry.EpisodeCount eps</span>
@@ -61,7 +65,6 @@ else
                     <p class="detail-synopsis">@Entry.Description</p>
                 }
 
-                <!-- Ratings -->
                 <div class="detail-ratings">
                     @if (Entry.AverageRating.HasValue)
                     {
@@ -96,7 +99,6 @@ else
                     </div>
                 }
 
-                <!-- Actions -->
                 <div class="detail-actions">
                     <button class="btn btn-gold" @onclick="ToggleFavorite">
                         @(Entry.IsFavorite ? "★ Favorited" : "☆ Add to Favorites")
@@ -111,25 +113,26 @@ else
             </div>
         </div>
 
-        <!-- Inline Edit Panel -->
         @if (IsEditing)
         {
             <div class="edit-panel">
                 <h2 class="edit-panel-title">Edit Entry</h2>
                 <div class="edit-panel-grid">
 
-                    <div class="dev-panel-field">
-                        <label class="dev-panel-label">Watch Status</label>
-                        <select class="dev-select" @bind="EditStatus">
-                            <option>Plan to Watch</option>
-                            <option>Watching</option>
-                            <option>Watched</option>
-                            <option>Plan to Read</option>
-                            <option>Reading</option>
-                            <option>Read</option>
-                            <option>On-Hold</option>
-                            <option>Dropped</option>
-                        </select>
+                    <div class="dev-panel-field dev-panel-field-full">
+                        <label class="dev-panel-label">Status</label>
+                        <div class="status-checkbox-grid">
+                            @foreach (var status in AllStatuses)
+                            {
+                                var captured = status;
+                                <label class="status-checkbox-label @(EditStatuses.Contains(captured) ? "status-checkbox-active" : "")">
+                                    <input type="checkbox"
+                                           checked="@EditStatuses.Contains(captured)"
+                                           @onchange="() => ToggleEditStatus(captured)" />
+                                    @captured
+                                </label>
+                            }
+                        </div>
                     </div>
 
                     <div class="dev-panel-field">
@@ -180,7 +183,6 @@ else
                     </div>
 
                 </div>
-
                 <div class="edit-panel-actions">
                     <button class="btn btn-gold" @onclick="SaveEdit">💾 Save Changes</button>
                     <button class="btn btn-back" @onclick="ToggleEdit">Cancel</button>
@@ -188,7 +190,6 @@ else
             </div>
         }
 
-        <!-- Trailer -->
         @if (!string.IsNullOrWhiteSpace(Entry.TrailerUrl))
         {
             <div class="detail-trailer">
@@ -203,7 +204,6 @@ else
             </div>
         }
 
-        <!-- Delete Confirmation -->
         @if (ShowDeleteConfirm)
         {
             <div class="confirm-overlay">
@@ -231,12 +231,19 @@ else
     private bool IsEditing = false;
     private bool ShowDeleteConfirm = false;
 
-    // Edit fields
-    private string EditStatus = string.Empty;
+    private HashSet<string> EditStatuses = new();
     private decimal? EditRating;
     private bool? EditLiked;
     private bool EditFavorite;
     private string EditNotes = string.Empty;
+
+    private readonly List<string> AllStatuses = new()
+    {
+        "Watching", "Watched",
+        "Reading", "Read",
+        "Plan to Watch", "Plan to Read",
+        "On-Hold", "Dropped"
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -246,12 +253,9 @@ else
 
     private void GoBack()
     {
-        if (From == "favorites")
-            Nav.NavigateTo("/favorites");
-        else if (From == "home")
-            Nav.NavigateTo("/");
-        else
-            Nav.NavigateTo("/vault");
+        if (From == "favorites") Nav.NavigateTo("/favorites");
+        else if (From == "home") Nav.NavigateTo("/");
+        else Nav.NavigateTo("/vault");
     }
 
     private void ToggleEdit()
@@ -260,7 +264,9 @@ else
         IsEditing = !IsEditing;
         if (IsEditing)
         {
-            EditStatus = Entry.WatchStatus;
+            EditStatuses = Entry.Statuses
+                .Select(s => s.StatusType)
+                .ToHashSet();
             EditRating = Entry.MyRating;
             EditLiked = Entry.Liked;
             EditFavorite = Entry.IsFavorite;
@@ -268,15 +274,24 @@ else
         }
     }
 
+    private void ToggleEditStatus(string status)
+    {
+        if (EditStatuses.Contains(status))
+            EditStatuses.Remove(status);
+        else
+            EditStatuses.Add(status);
+    }
+
     private async Task SaveEdit()
     {
         if (Entry == null) return;
-        Entry.WatchStatus = EditStatus;
         Entry.MyRating = EditRating;
         Entry.Liked = EditLiked;
         Entry.IsFavorite = EditFavorite;
         Entry.Notes = string.IsNullOrWhiteSpace(EditNotes) ? null : EditNotes;
         await AnimeService.UpdateAsync(Entry);
+        await AnimeService.SetStatusesAsync(Entry.Id, EditStatuses.ToList());
+        Entry = await AnimeService.GetByIdAsync(Entry.Id);
         Toast.Show("Entry updated!", ToastType.Success);
         IsEditing = false;
     }
