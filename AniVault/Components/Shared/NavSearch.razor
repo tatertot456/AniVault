@@ -66,9 +66,18 @@
     protected override async Task OnInitializedAsync()
     {
         AllAnime = await AnimeService.GetAllAsync();
+        Nav.LocationChanged += async (s, e) =>
+        {
+            AllAnime = await AnimeService.GetAllAsync();
+            await InvokeAsync(StateHasChanged);
+        };
     }
 
-    private void OnSearchFocus() => SearchFocused = true;
+    private async Task OnSearchFocus()
+    {
+        SearchFocused = true;
+        AllAnime = await AnimeService.GetAllAsync();
+    }
 
     private void OnSearchBlur()
     {
@@ -89,17 +98,27 @@
         {
             SearchResults = new();
             TotalResults = 0;
+            return;
         }
-        else
-        {
-            var matches = AllAnime
-                .Where(a => a.Title.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(a => a.Title)
-                .ToList();
-            TotalResults = matches.Count;
-            SearchResults = matches.Take(5).ToList();
-        }
+
+        var q = Normalize(_searchQuery);
+
+        SearchResults = AllAnime
+            .Where(a => Normalize(a.Title).Contains(q))
+            .Take(5)
+            .ToList();
+
+        TotalResults = AllAnime.Count(a => Normalize(a.Title).Contains(q));
     }
+
+    private string Normalize(string s) =>
+        s.ToLower()
+         .Replace("\u2019", "")
+         .Replace("\u2018", "")
+         .Replace("'", "")
+         .Replace("'", "")
+         .Replace("-", " ")
+         .Trim();
 
     private void GoToEntry(int id)
     {

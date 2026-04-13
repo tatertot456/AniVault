@@ -32,8 +32,8 @@
             <input class="vault-search-input"
                    type="text"
                    placeholder="Search titles..."
-                   @bind="SearchQuery"
-                   @bind:event="oninput" />
+                   value="SearchQuery"
+                   @oninput="OnSearchInput" />
         </div>
         <select class="dev-select" @bind="SortOrder" @bind:after="ApplyFilter">
             <option value="recent">Recently Added</option>
@@ -462,5 +462,11 @@
         RandomEntry = pool.Any()
             ? pool[Rng.Next(pool.Count)]
             : null;
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        SearchQuery = e.Value?.ToString() ?? string.Empty;
+        ApplyFilter();
     }
 }
