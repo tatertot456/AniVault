@@ -6,18 +6,40 @@ A personal anime and manga tracking web application built with Blazor Server and
 
 ## Features
 
-- **Gallery & Vault** — Browse your collection in a responsive card grid with filter chips, search, and sort options
+### Pages
+- **Home** — Hero splash with live vault stats (total, watched, favorites), currently watching section, and recently added grid
+- **Vault** — Full card grid with search, sort, Anime/Manga toggle, status filter chips with counts, and genre mood filter
+- **Favorites** — Starred anime with sort options and spotlight modal
+- **Stats** — 12 stat cards, colored status breakdown bars, genre cloud, and top rated list
+- **Activity Log** — Timeline of all vault entries grouped by date with status, rating, liked, and notes
+- **Add Anime** — Centered search powered by Jikan API with grid results and full add panel
+
+### Core Features
+- **Global Navbar Search** — Live search across your entire vault from any page with dropdown results
 - **Spotlight Modal** — Click any card to preview details, synopsis, genre tags, and ratings without leaving the page
-- **Dev Menu** — Search the Jikan (MyAnimeList) API and add anime to your vault with a full add form
+- **Card Hover Info** — Hover over any card to see description and liked status
 - **Inline Editing** — Update status, rating, liked, favorite, and notes directly from the detail page
-- **Stats Dashboard** — Track counts, colored status breakdown bars, genre cloud, and your top rated list
-- **Favorites** — Star any anime and view them in a dedicated sorted favorites page
-- **Currently Watching** — Home page highlights what you're actively watching or reading
-- **Status Pills** — Color-coded status indicators throughout (Watched, Watching, Read, Reading, Plan to Watch, Plan to Read, On-Hold, Dropped)
+- **Random Picker** — 🎲 button picks a random anime from your Plan to Watch/Read list
+- **Anime/Manga Split** — Toggle between All, Anime, and Manga on the Vault page
+- **Genre Mood Filter** — Filter the vault by genre chips
+- **Status Pills** — Color-coded status indicators throughout
 - **Delete Confirmation** — Safe removal with a confirmation modal
 - **Smart Back Button** — Returns you to the correct page depending on where you navigated from
-- **Custom Cursor** — Gold dot and ring cursor that follows your mouse
+- **Favorites Sorting** — Sort favorites by recently added, A→Z, my rating, or MAL score
+- **Custom Cursor** — Gold dot and ring cursor
 - **Toast Notifications** — Feedback toasts for adding, editing, and removing entries
+
+### Status System
+| Status | Color | Type |
+|---|---|---|
+| Watched | Teal | Anime |
+| Watching | Gold | Anime |
+| Plan to Watch | Amber | Anime |
+| Read | Blue | Manga |
+| Reading | Purple | Manga |
+| Plan to Read | Amber | Manga |
+| Dropped | Red | Both |
+| On-Hold | Orange | Both |
 
 ---
 
@@ -45,30 +67,33 @@ AniVault/
     ├── Program.cs
     ├── appsettings.json
     ├── Data/
-    │   ├── AnimeEntry.cs          # EF Core model — maps to dbo.Anime
-    │   └── AnimeTrackerContext.cs # DbContext
+    │   ├── AnimeEntry.cs               # EF Core model — maps to dbo.Anime
+    │   └── AnimeTrackerContext.cs      # DbContext
     ├── Services/
-    │   ├── AnimeService.cs        # CRUD operations against SQL Server
-    │   ├── JikanService.cs        # Jikan API search and metadata fetch
-    │   └── ToastService.cs        # In-app toast notifications
+    │   ├── AnimeService.cs             # CRUD operations against SQL Server
+    │   ├── JikanService.cs             # Jikan API search and metadata fetch
+    │   └── ToastService.cs             # In-app toast notifications
     ├── Components/
     │   ├── App.razor
     │   ├── Routes.razor
     │   ├── _Imports.razor
     │   ├── Layout/
-    │   │   └── MainLayout.razor   # Navbar, shell, toast container
+    │   │   └── MainLayout.razor        # Navbar, shell, toast container
+    │   ├── Shared/
+    │   │   └── NavSearch.razor         # Global navbar search component
     │   └── Pages/
-    │       ├── Home.razor         # Hero splash, currently watching, recently added
-    │       ├── Vault.razor        # Full grid with search, sort, filter chips
-    │       ├── AnimeDetail.razor  # Full entry view with inline editing
-    │       ├── Favorites.razor    # Starred anime with sort options
-    │       ├── Stats.razor        # Stats dashboard
-    │       └── DevMenu.razor      # Jikan search + add to vault panel
+    │       ├── Home.razor              # Hero splash, currently watching, recently added
+    │       ├── Vault.razor             # Full grid with search, sort, filters
+    │       ├── AnimeDetail.razor       # Full entry view with inline editing
+    │       ├── Favorites.razor         # Starred anime with sort options
+    │       ├── Stats.razor             # Stats dashboard
+    │       ├── ActivityLog.razor       # Timeline activity log
+    │       └── AddAnime.razor          # Jikan search + add to vault
     └── wwwroot/
-        ├── app.css                # Global dark cinematic styles
-        ├── favicon.svg            # Gold diamond AniVault icon
+        ├── app.css                     # Global dark cinematic styles
+        ├── favicon.svg                 # Gold diamond AniVault icon
         └── js/
-            └── app.js             # Custom cursor
+            └── app.js                  # Custom cursor
 ```
 
 ---
@@ -78,8 +103,6 @@ AniVault/
 The app connects to a local SQL Server instance. The database and table must exist before running the app — Entity Framework does **not** auto-create them.
 
 ### 1. Create the database
-
-Run this in SSMS:
 
 ```sql
 CREATE DATABASE AnimeTracker;
@@ -154,17 +177,12 @@ AniVault uses the [Jikan API v4](https://docs.api.jikan.moe/) — a free, unoffi
 
 ---
 
-## Status Colors
+## Potential Future Features
 
-| Status | Color |
-|---|---|
-| Watched | Teal |
-| Watching | Gold |
-| Read | Blue |
-| Reading | Purple |
-| Plan to Watch / Plan to Read | Amber |
-| Dropped | Red |
-| On-Hold | Orange |
+- Import from MyAnimeList
+- PWA support for mobile installation
+- Public shareable profile page
+- Edit from the spotlight modal
 
 ---
 
