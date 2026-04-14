@@ -92,4 +92,30 @@ app.MapPost("/login-post", async (
         : Results.Redirect("/login?error=1");
 });
 
+app.MapPost("/register-post", async (
+    HttpContext httpContext,
+    UserManager<IdentityUser> userManager,
+    SignInManager<IdentityUser> signInManager) =>
+{
+    var form = await httpContext.Request.ReadFormAsync();
+    var email = form["email"].ToString();
+    var password = form["password"].ToString();
+    var confirmPassword = form["confirmPassword"].ToString();
+
+    if (password != confirmPassword)
+        return Results.Redirect("/register?error=mismatch");
+
+    var user = new IdentityUser { UserName = email, Email = email };
+    var result = await userManager.CreateAsync(user, password);
+
+    if (result.Succeeded)
+    {
+        await signInManager.SignInAsync(user, isPersistent: true);
+        return Results.Redirect("/");
+    }
+
+    var errorCode = Uri.EscapeDataString(result.Errors.First().Description);
+    return Results.Redirect($"/register?error={errorCode}");
+});
+
 app.Run();

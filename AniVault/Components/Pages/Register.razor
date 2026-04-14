@@ -1,7 +1,4 @@
 ﻿@page "/register"
-@inject UserManager<IdentityUser> UserManager
-@inject SignInManager<IdentityUser> SignInManager
-@inject NavigationManager Nav
 @rendermode InteractiveServer
 
 <PageTitle>Register — AniVault</PageTitle>
@@ -11,35 +8,38 @@
         <div class="auth-logo">ANI<span>VAULT</span></div>
         <h2 class="auth-title">Create Account</h2>
 
-        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        @if (!string.IsNullOrWhiteSpace(Error))
         {
-            <div class="auth-error">@ErrorMessage</div>
+            <div class="auth-error">
+                @(Error == "mismatch" ? "Passwords do not match." : Uri.UnescapeDataString(Error))
+            </div>
         }
 
-        <div class="auth-form">
+        <form method="post" action="/register-post" class="auth-form">
+            <AntiforgeryToken />
             <div class="dev-panel-field">
                 <label class="dev-panel-label">Email</label>
                 <input class="dev-input" type="email"
+                       name="email"
                        placeholder="your@email.com"
-                       @bind="Email" />
+                       required />
             </div>
             <div class="dev-panel-field">
                 <label class="dev-panel-label">Password</label>
                 <input class="dev-input" type="password"
+                       name="password"
                        placeholder="Min 8 characters"
-                       @bind="Password" />
+                       required />
             </div>
             <div class="dev-panel-field">
                 <label class="dev-panel-label">Confirm Password</label>
                 <input class="dev-input" type="password"
+                       name="confirmPassword"
                        placeholder="Repeat password"
-                       @bind="ConfirmPassword"
-                       @onkeydown="HandleKeyDown" />
+                       required />
             </div>
-            <button class="btn btn-gold auth-btn" @onclick="HandleRegister" disabled="@IsLoading">
-                @(IsLoading ? "Creating account..." : "Create Account")
-            </button>
-        </div>
+            <button type="submit" class="btn btn-gold auth-btn">Create Account</button>
+        </form>
 
         <p class="auth-switch">
             Already have an account? <a href="/login">Sign In</a>
@@ -48,46 +48,6 @@
 </div>
 
 @code {
-    private string Email = string.Empty;
-    private string Password = string.Empty;
-    private string ConfirmPassword = string.Empty;
-    private string ErrorMessage = string.Empty;
-    private bool IsLoading = false;
-
-    private async Task HandleKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") await HandleRegister();
-    }
-
-    private async Task HandleRegister()
-    {
-        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
-        {
-            ErrorMessage = "Please fill in all fields.";
-            return;
-        }
-
-        if (Password != ConfirmPassword)
-        {
-            ErrorMessage = "Passwords do not match.";
-            return;
-        }
-
-        IsLoading = true;
-        ErrorMessage = string.Empty;
-
-        var user = new IdentityUser { UserName = Email, Email = Email };
-        var result = await UserManager.CreateAsync(user, Password);
-
-        if (result.Succeeded)
-        {
-            await SignInManager.SignInAsync(user, isPersistent: true);
-            Nav.NavigateTo("/");
-        }
-        else
-        {
-            ErrorMessage = string.Join(" ", result.Errors.Select(e => e.Description));
-            IsLoading = false;
-        }
-    }
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
 }
