@@ -2228,3 +2228,100 @@ a {
     color: var(--gold);
     font-weight: 600;
 }
+
+/* ── Auth Pages ── */
+.auth-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-void);
+}
+
+.auth-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.auth-logo {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 0.15em;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+    .auth-logo span {
+        color: var(--gold);
+    }
+
+.auth-title {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin: 0;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.auth-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    font-size: 1rem;
+}
+
+.auth-error {
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    color: #f87171;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+}
+
+.auth-switch {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+    .auth-switch a {
+        color: var(--gold);
+        text-decoration: none;
+    }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+/* ── Logout Button ── */
+.btn-logout {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition);
+    text-decoration: none;
+    display: inline-block;
+}
+
+    .btn-logout:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+    }

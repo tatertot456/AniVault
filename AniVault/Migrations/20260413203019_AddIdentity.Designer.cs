@@ -4,6 +4,7 @@ using AniVault.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AniVault.Migrations
 {
     [DbContext(typeof(AnimeTrackerContext))]
-    partial class AnimeTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20260413203019_AddIdentity")]
+    partial class AddIdentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -99,16 +102,10 @@ namespace AniVault.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("UserId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int?>("Year")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Anime", (string)null);
                 });
@@ -333,16 +330,6 @@ namespace AniVault.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("AniVault.Data.AnimeEntry", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AniVault.Data.AnimeStatus", b =>

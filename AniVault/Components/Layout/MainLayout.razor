@@ -1,13 +1,12 @@
 ﻿@inherits LayoutComponentBase
 @inject ToastService Toast
+@inject NavigationManager Nav
 @implements IDisposable
 
 <div class="app-shell">
-    <!-- Custom Cursor -->
     <div id="cursor-dot"></div>
     <div id="cursor-ring"></div>
 
-    <!-- Navigation -->
     <nav class="navbar">
         <a class="navbar-brand" href="/">ANI<span>VAULT</span></a>
 
@@ -19,20 +18,28 @@
             <li><NavLink href="/activity" class="nav-link">Activity</NavLink></li>
         </ul>
 
-       <!-- Global Search -->
-       <NavSearch />
+        <NavSearch />
 
         <div class="navbar-right">
             <a href="/add-anime" class="dev-badge">＋ Add Anime</a>
+            <AuthorizeView>
+                <Authorized>
+                    <form method="post" action="/logout">
+                        <AntiforgeryToken />
+                        <button type="submit" class="btn-logout">Sign Out</button>
+                    </form>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/login" class="btn-logout">Sign In</a>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
     </nav>
 
-    <!-- Page Content -->
     <main class="page-content">
         @Body
     </main>
 
-    <!-- Toast Container -->
     <div class="toast-container">
         @foreach (var toast in Toast.Toasts)
         {

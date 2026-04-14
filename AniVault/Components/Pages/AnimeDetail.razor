@@ -1,5 +1,6 @@
 ﻿@page "/anime/{Id:int}"
 @page "/anime/{Id:int}/{From}"
+@attribute [Authorize]
 @inject AnimeService AnimeService
 @inject NavigationManager Nav
 @inject ToastService Toast

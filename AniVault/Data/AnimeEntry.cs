@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AniVault.Data;
@@ -52,6 +53,11 @@ public class AnimeEntry
     public string? TitleJapanese { get; set; }
 
     public int? Year { get; set; }
+
+    [MaxLength(450)]
+    public string? UserId { get; set; }
+
+    public IdentityUser? User { get; set; }
 
     // Navigation property for statuses
     public List<AnimeStatus> Statuses { get; set; } = new();

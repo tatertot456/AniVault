@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace AniVault.Data;
 
-public class AnimeTrackerContext : DbContext
+public class AnimeTrackerContext : IdentityDbContext<IdentityUser>
 {
     public AnimeTrackerContext(DbContextOptions<AnimeTrackerContext> options) : base(options) { }
 
@@ -29,6 +31,11 @@ public class AnimeTrackerContext : DbContext
         modelBuilder.Entity<AnimeEntry>(entity =>
         {
             entity.ToTable("Anime");
+
+            entity.HasOne(a => a.User)
+                  .WithMany()
+                  .HasForeignKey(a => a.UserId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

@@ -1,0 +1,47 @@
+﻿@page "/login"
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Login — AniVault</PageTitle>
+
+<div class="auth-shell">
+    <div class="auth-card">
+        <div class="auth-logo">ANI<span>VAULT</span></div>
+        <h2 class="auth-title">Welcome Back</h2>
+
+        @if (ShowError)
+        {
+            <div class="auth-error">Invalid email or password.</div>
+        }
+
+        <form method="post" action="/login-post" class="auth-form">
+            <AntiforgeryToken />
+            <div class="dev-panel-field">
+                <label class="dev-panel-label">Email</label>
+                <input class="dev-input" type="email"
+                       name="email"
+                       placeholder="your@email.com"
+                       required />
+            </div>
+            <div class="dev-panel-field">
+                <label class="dev-panel-label">Password</label>
+                <input class="dev-input" type="password"
+                       name="password"
+                       placeholder="••••••••"
+                       required />
+            </div>
+            <button type="submit" class="btn btn-gold auth-btn">Sign In</button>
+        </form>
+
+        <p class="auth-switch">
+            Don't have an account? <a href="/register">Register</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
+
+    private bool ShowError => Error == "1";
+}
