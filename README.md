@@ -1,6 +1,6 @@
 # AniVault 🗃
 
-A personal anime and manga tracking web application built with Blazor Server and SQL Server. Search for anime using the Jikan API, add them to your vault, and track your watch/read status, ratings, and notes — all in a dark cinematic interface.
+A personal anime and manga tracking web application built with Blazor Server and SQL Server. Search for anime using the Jikan API, add them to your vault, and track your watch/read status, ratings, and notes — all in a dark cinematic interface. Supports multiple users with isolated vaults.
 
 ---
 
@@ -13,8 +13,13 @@ A personal anime and manga tracking web application built with Blazor Server and
 - **Stats** — 12 stat cards, colored status breakdown bars, genre cloud, and top rated list
 - **Activity Log** — Timeline of all vault entries grouped by date with status, rating, liked, and notes
 - **Add Anime** — Centered search powered by Jikan API with grid results and full add panel
+- **Login** — Email and password sign in
+- **Register** — New account creation
 
 ### Core Features
+- **Multi-Status Support** — Assign multiple statuses to a single title (e.g. both Watched and Read for a series with an anime and manga)
+- **User Accounts** — Each user has their own isolated vault; entries are never shared between accounts
+- **Auth Protection** — All pages require login; unauthenticated users are redirected to the login page
 - **Global Navbar Search** — Live search across your entire vault from any page with dropdown results
 - **Spotlight Modal** — Click any card to preview details, synopsis, genre tags, and ratings without leaving the page
 - **Card Hover Info** — Hover over any card to see description and liked status
@@ -22,7 +27,7 @@ A personal anime and manga tracking web application built with Blazor Server and
 - **Random Picker** — 🎲 button picks a random anime from your Plan to Watch/Read list
 - **Anime/Manga Split** — Toggle between All, Anime, and Manga on the Vault page
 - **Genre Mood Filter** — Filter the vault by genre chips
-- **Status Pills** — Color-coded status indicators throughout
+- **Status Pills** — Color-coded status indicators throughout; multiple pills shown when multiple statuses are assigned
 - **Delete Confirmation** — Safe removal with a confirmation modal
 - **Smart Back Button** — Returns you to the correct page depending on where you navigated from
 - **Favorites Sorting** — Sort favorites by recently added, A→Z, my rating, or MAL score
@@ -33,13 +38,15 @@ A personal anime and manga tracking web application built with Blazor Server and
 | Status | Color | Type |
 |---|---|---|
 | Watched | Teal | Anime |
-| Watching | Gold | Anime |
+| Watching | Blue | Anime |
 | Plan to Watch | Amber | Anime |
-| Read | Blue | Manga |
+| Read | Blue-Gray | Manga |
 | Reading | Purple | Manga |
 | Plan to Read | Amber | Manga |
 | Dropped | Red | Both |
 | On-Hold | Orange | Both |
+
+Multiple statuses can be assigned to the same title. For example, a title with both an anime and manga adaptation can be marked as both Watched and Read simultaneously.
 
 ---
 
@@ -49,6 +56,7 @@ A personal anime and manga tracking web application built with Blazor Server and
 |---|---|
 | Frontend | Blazor Server (.NET 10) |
 | Backend | ASP.NET Core |
+| Auth | ASP.NET Core Identity |
 | Database | SQL Server (local) |
 | ORM | Entity Framework Core 10 |
 | External API | Jikan API v4 (MyAnimeList) |
@@ -68,17 +76,18 @@ AniVault/
     ├── appsettings.json
     ├── Data/
     │   ├── AnimeEntry.cs               # EF Core model — maps to dbo.Anime
-    │   └── AnimeTrackerContext.cs      # DbContext
+    │   ├── AnimeStatus.cs              # EF Core model — maps to dbo.AnimeStatus
+    │   └── AnimeTrackerContext.cs      # IdentityDbContext
     ├── Services/
-    │   ├── AnimeService.cs             # CRUD operations against SQL Server
+    │   ├── AnimeService.cs             # CRUD operations scoped to logged-in user
     │   ├── JikanService.cs             # Jikan API search and metadata fetch
     │   └── ToastService.cs             # In-app toast notifications
     ├── Components/
-    │   ├── App.razor
+    │   ├── App.razor                   # CascadingAuthenticationState wrapper
     │   ├── Routes.razor
     │   ├── _Imports.razor
     │   ├── Layout/
-    │   │   └── MainLayout.razor        # Navbar, shell, toast container
+    │   │   └── MainLayout.razor        # Navbar, shell, toast container, sign out button
     │   ├── Shared/
     │   │   └── NavSearch.razor         # Global navbar search component
     │   └── Pages/
@@ -88,7 +97,9 @@ AniVault/
     │       ├── Favorites.razor         # Starred anime with sort options
     │       ├── Stats.razor             # Stats dashboard
     │       ├── ActivityLog.razor       # Timeline activity log
-    │       └── AddAnime.razor          # Jikan search + add to vault
+    │       ├── AddAnime.razor          # Jikan search + add to vault
+    │       ├── Login.razor             # Sign in page
+    │       └── Register.razor          # Account creation page
     └── wwwroot/
         ├── app.css                     # Global dark cinematic styles
         ├── favicon.svg                 # Gold diamond AniVault icon
@@ -100,43 +111,15 @@ AniVault/
 
 ## Database Setup
 
-The app connects to a local SQL Server instance. The database and table must exist before running the app — Entity Framework does **not** auto-create them.
+The app connects to a local SQL Server instance. Run EF Core migrations to set up the schema — do **not** manually create tables.
 
-### 1. Create the database
+### 1. Create the database in SSMS
 
 ```sql
 CREATE DATABASE AnimeTracker;
 ```
 
-### 2. Create the table
-
-```sql
-USE AnimeTracker;
-GO
-
-CREATE TABLE dbo.Anime (
-    Id             INT IDENTITY(1,1) PRIMARY KEY,
-    Title          NVARCHAR(255) NOT NULL,
-    CoverImageUrl  NVARCHAR(500) NULL,
-    Description    NVARCHAR(MAX) NULL,
-    Genre          NVARCHAR(255) NULL,
-    EpisodeCount   INT NULL,
-    AverageRating  DECIMAL(3,1) NULL,
-    MyRating       DECIMAL(3,1) NULL,
-    Liked          BIT NULL,
-    WatchStatus    NVARCHAR(50) NOT NULL DEFAULT 'Plan to Watch',
-    DateAdded      DATETIME NOT NULL DEFAULT GETDATE(),
-    Notes          NVARCHAR(MAX) NULL,
-    TrailerUrl     NVARCHAR(500) NULL,
-    IsFavorite     BIT NOT NULL DEFAULT 0,
-    CONSTRAINT CK_Anime_WatchStatus CHECK (WatchStatus IN (
-        'Watched', 'Watching', 'Plan to Watch', 'Plan to Read',
-        'Reading', 'Read', 'Dropped', 'On-Hold'
-    ))
-);
-```
-
-### 3. Update the connection string
+### 2. Update the connection string
 
 In `appsettings.json`, update the server name to match your local SQL Server instance:
 
@@ -147,6 +130,22 @@ In `appsettings.json`, update the server name to match your local SQL Server ins
   }
 }
 ```
+
+### 3. Apply migrations
+
+In Visual Studio Package Manager Console:
+
+```
+Update-Database
+```
+
+This creates all tables including `dbo.Anime`, `dbo.AnimeStatus`, and the full ASP.NET Core Identity tables (`AspNetUsers`, `AspNetRoles`, etc.).
+
+### Database Schema
+
+**dbo.Anime** — core entry table with a `UserId` foreign key linking each entry to its owner in `AspNetUsers`.
+
+**dbo.AnimeStatus** — many-to-one status table allowing multiple statuses per anime entry. Each row has an `AnimeId` and a `StatusType` string. A unique constraint prevents duplicate status types per entry.
 
 ---
 
@@ -162,10 +161,13 @@ In `appsettings.json`, update the server name to match your local SQL Server ins
 ### Running the app
 
 1. Clone the repository
-2. Set up the database using the SQL scripts above
+2. Create the `AnimeTracker` database in SSMS
 3. Update `appsettings.json` with your SQL Server instance name
 4. Open `AniVault.sln` in Visual Studio
-5. Hit **F5** or click the green **https** play button
+5. Run `Update-Database` in Package Manager Console
+6. Hit **F5** or click the green **https** play button
+7. Navigate to `/register` to create your account
+8. Start adding anime from the **＋ Add Anime** page
 
 The app will open in your browser at `https://localhost:{port}`.
 
@@ -177,8 +179,21 @@ AniVault uses the [Jikan API v4](https://docs.api.jikan.moe/) — a free, unoffi
 
 ---
 
+## Branch Strategy
+
+| Branch | Purpose |
+|---|---|
+| `main` | Stable, production-ready code |
+| `develop` | Active development |
+| `feature/*` | Individual features branched from develop |
+
+New features are developed on `feature/` branches, merged into `develop` when complete, and merged into `main` when stable.
+
+---
+
 ## Potential Future Features
 
+- DevMenu — admin dashboard for bulk editing and database health checks
 - Import from MyAnimeList
 - PWA support for mobile installation
 - Public shareable profile page
