@@ -79,7 +79,7 @@ namespace AniVault.Services
             try
             {
                 await Task.Delay(1000); // Respect Jikan rate limit
-                var url = $"https://api.jikan.moe/v4/anime?q={Uri.EscapeDataString(query)}&limit=8&sfw=false";
+                var url = $"anime?q={Uri.EscapeDataString(query)}&limit=8&sfw=false";
 
                 var response = await _http.GetAsync(url);
 
