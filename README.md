@@ -60,7 +60,7 @@ Multiple statuses can be assigned to the same title. For example, a title with b
 | Database | SQL Server (local) |
 | ORM | Entity Framework Core 10 |
 | External API | Jikan API v4 (MyAnimeList) |
-| IDE | Visual Studio Community 2022 |
+| IDE | Visual Studio Community 2026 |
 | DB Tool | SQL Server Management Studio 2022 |
 
 ---
@@ -153,7 +153,7 @@ This creates all tables including `dbo.Anime`, `dbo.AnimeStatus`, and the full A
 
 ### Prerequisites
 
-- [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/community/) with ASP.NET workload
+- [Visual Studio Community 2026](https://visualstudio.microsoft.com/vs/community/) with ASP.NET workload
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (Express or Developer edition)
 - [SQL Server Management Studio](https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms)
